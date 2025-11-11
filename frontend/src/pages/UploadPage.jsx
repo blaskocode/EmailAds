@@ -109,13 +109,28 @@ function UploadPage() {
       
     } catch (err) {
       console.error('Upload error:', err);
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
+      // Extract error message from various possible error formats
+      let errorMessage = 'Failed to upload campaign. Please try again.';
+      
+      if (err.response?.data) {
+        // FastAPI error format
+        if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        }
       } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError('Failed to upload campaign. Please try again.');
+        errorMessage = err.message;
       }
+      
+      setError(errorMessage);
+      console.error('Error details:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }

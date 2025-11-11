@@ -32,22 +32,29 @@ async def get_campaign_preview(
     """
     try:
         # Get campaign
-        campaign = await get_campaign(campaign_id)
+        campaign = await get_campaign(campaign_id, conn=conn)
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # If campaign is ready, use cached proof (fast path)
         # If processed but not ready, generate proof
+        # If uploaded but not processed, need to process first
         if campaign.status == 'ready' and campaign.proof_s3_path:
             # Campaign already has proof, generate preview data from it
             proof_result = await generate_proof(campaign_id, campaign, use_cache=True)
         elif campaign.status == 'processed':
             # Generate proof for processed campaign
             proof_result = await generate_proof(campaign_id, campaign, use_cache=False)
+        elif campaign.status == 'uploaded':
+            # Campaign needs to be processed first
+            raise HTTPException(
+                status_code=400,
+                detail="Campaign must be processed before preview. Please process the campaign first."
+            )
         else:
             raise HTTPException(
                 status_code=400,
-                detail=f"Campaign must be processed before preview. Current status: {campaign.status}"
+                detail=f"Campaign is in invalid state for preview. Current status: {campaign.status}"
             )
         
         # Return preview response

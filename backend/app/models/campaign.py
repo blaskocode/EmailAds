@@ -79,6 +79,10 @@ class Campaign:
     
     async def save(self, conn):
         """Save campaign to database"""
+        # Ensure connection is valid
+        if conn is None:
+            raise ValueError("Database connection is None")
+        
         async with conn.cursor() as cursor:
             await cursor.execute("""
                 INSERT OR REPLACE INTO campaigns 

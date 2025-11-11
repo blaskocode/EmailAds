@@ -56,10 +56,19 @@ async def upload_campaign(
         )
         
         # Validate logo file
+        if not logo.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="Logo file is required"
+            )
         validate_image_file(logo)
         logo_content = await logo.read()
+        if not logo_content:
+            raise HTTPException(
+                status_code=400,
+                detail="Logo file is empty"
+            )
         validate_file_size(logo_content)
-        await logo.seek(0)  # Reset for S3 upload
         
         # Validate hero images (1-3 files)
         if len(hero_images) > 3:
@@ -68,51 +77,76 @@ async def upload_campaign(
                 detail="Maximum 3 hero images allowed"
             )
         
+        hero_contents = []
         for hero_img in hero_images:
+            if not hero_img.filename:
+                continue  # Skip empty file entries
             validate_image_file(hero_img)
             hero_content = await hero_img.read()
-            validate_file_size(hero_content)
-            await hero_img.seek(0)  # Reset for S3 upload
+            if hero_content:
+                validate_file_size(hero_content)
+                hero_contents.append((hero_img, hero_content))
         
         # Create campaign record first
-        campaign = await create_campaign(
-            campaign_name=campaign_name,
-            advertiser_name=advertiser_name
-        )
+        try:
+            campaign = await create_campaign(
+                campaign_name=campaign_name,
+                advertiser_name=advertiser_name,
+                conn=conn
+            )
+        except Exception as e:
+            logger.error(f"Error creating campaign: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create campaign: {str(e)}"
+            )
         
         # Upload logo to S3
-        logo_s3_key = generate_s3_key(campaign.id, logo.filename, 'assets')
-        logo_file_obj = BytesIO(logo_content)
-        logo_s3_url = await s3_service.upload_file(
-            logo_file_obj,
-            logo_s3_key,
-            content_type=logo.content_type
-        )
+        try:
+            logo_s3_key = generate_s3_key(campaign.id, logo.filename, 'assets')
+            logo_file_obj = BytesIO(logo_content)
+            logo_s3_url = await s3_service.upload_file(
+                logo_file_obj,
+                logo_s3_key,
+                content_type=logo.content_type or 'image/png'
+            )
+        except Exception as e:
+            logger.error(f"Error uploading logo to S3: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload logo to S3: {str(e)}"
+            )
         
         # Upload hero images to S3 and collect metadata
         hero_s3_urls = []
         hero_metadata = []
-        for idx, hero_img in enumerate(hero_images):
-            hero_s3_key = generate_s3_key(
-                campaign.id,
-                hero_img.filename or f"hero_{idx}.jpg",
-                'assets'
-            )
-            hero_content = await hero_img.read()
-            hero_file_obj = BytesIO(hero_content)
-            hero_s3_url = await s3_service.upload_file(
-                hero_file_obj,
-                hero_s3_key,
-                content_type=hero_img.content_type
-            )
-            hero_s3_urls.append(hero_s3_url)
-            hero_metadata.append({
-                'filename': hero_img.filename,
-                's3_key': hero_s3_key,
-                's3_url': hero_s3_url,
-                'content_type': hero_img.content_type,
-                'size': len(hero_content)
-            })
+        for idx, (hero_img, hero_content) in enumerate(hero_contents):
+            try:
+                hero_s3_key = generate_s3_key(
+                    campaign.id,
+                    hero_img.filename or f"hero_{idx}.jpg",
+                    'assets'
+                )
+                hero_file_obj = BytesIO(hero_content)
+                hero_s3_url = await s3_service.upload_file(
+                    hero_file_obj,
+                    hero_s3_key,
+                    content_type=hero_img.content_type or 'image/jpeg'
+                )
+                hero_s3_urls.append(hero_s3_url)
+                hero_metadata.append({
+                    'filename': hero_img.filename,
+                    's3_key': hero_s3_key,
+                    's3_url': hero_s3_url,
+                    'content_type': hero_img.content_type or 'image/jpeg',
+                    'size': len(hero_content)
+                })
+            except Exception as e:
+                logger.error(f"Error uploading hero image {idx} to S3: {e}", exc_info=True)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload hero image to S3: {str(e)}"
+                )
         
         # Store asset metadata
         asset_metadata = {
@@ -135,12 +169,20 @@ async def upload_campaign(
         }
         
         # Update campaign with S3 paths
-        assets_s3_path = f"assets/{campaign.id}/"
-        await update_campaign_assets(
-            campaign.id,
-            assets_s3_path,
-            asset_metadata
-        )
+        try:
+            assets_s3_path = f"assets/{campaign.id}/"
+            await update_campaign_assets(
+                campaign.id,
+                assets_s3_path,
+                asset_metadata,
+                conn=conn
+            )
+        except Exception as e:
+            logger.error(f"Error updating campaign assets: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to update campaign assets: {str(e)}"
+            )
         
         logger.info(f"Successfully uploaded campaign: {campaign.id}")
         

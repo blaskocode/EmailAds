@@ -7,7 +7,7 @@ import Loading from '../components/Loading';
 import PreviewFrame from '../components/PreviewFrame';
 import CampaignDetails from '../components/CampaignDetails';
 import ApprovalButtons from '../components/ApprovalButtons';
-import { getPreview, generateProof } from '../services/api';
+import { getPreview, generateProof, processCampaign } from '../services/api';
 
 function PreviewPage() {
   const { campaignId } = useParams();
@@ -33,17 +33,28 @@ function PreviewPage() {
     } catch (err) {
       console.error('Error loading preview:', err);
       
-      // If preview doesn't exist, try generating proof first
+      // If preview doesn't exist, process and generate proof first
       if (err.response?.status === 400 || err.response?.status === 404) {
         try {
-          // Generate proof first
+          // Step 1: Process campaign (AI processing)
+          try {
+            await processCampaign(campaignId);
+          } catch (processErr) {
+            // If already processed, that's okay - continue to generate
+            if (processErr.response?.status !== 400) {
+              throw processErr;
+            }
+          }
+          
+          // Step 2: Generate proof
           await generateProof(campaignId);
-          // Then get preview
+          
+          // Step 3: Get preview
           const data = await getPreview(campaignId);
           setPreviewData(data);
         } catch (genErr) {
-          console.error('Error generating proof:', genErr);
-          setError(genErr.response?.data?.detail || 'Failed to generate preview');
+          console.error('Error processing/generating preview:', genErr);
+          setError(genErr.response?.data?.detail || 'Failed to generate preview. Please try again.');
         }
       } else {
         setError(err.response?.data?.detail || 'Failed to load preview');

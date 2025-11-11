@@ -85,11 +85,20 @@ async def get_db():
     Dependency for FastAPI to get database connection.
     Note: For now, we use a single connection. In production, consider connection pooling.
     """
+    # Ensure connection exists and is valid
     if not hasattr(db, 'conn') or db.conn is None:
         await db.connect()
-    try:
-        yield db.conn
-    finally:
-        # Don't close here - keep connection open for lifespan
-        pass
+    else:
+        # Check if connection is still valid by trying to access it
+        try:
+            # Simple check - if connection is closed, reconnect
+            if hasattr(db.conn, '_conn') and db.conn._conn is None:
+                await db.connect()
+        except (AttributeError, ValueError):
+            # Connection is invalid, reconnect
+            await db.connect()
+    
+    # Yield the connection - don't catch exceptions here
+    # FastAPI will handle cleanup and exception propagation
+    yield db.conn
 
