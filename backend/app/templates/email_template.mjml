@@ -1,0 +1,179 @@
+<mjml>
+  <mj-head>
+    <mj-title>{{ campaign_name }}</mj-title>
+    <mj-preview>{{ preview_text }}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, Helvetica, sans-serif" />
+      <mj-text font-size="16px" line-height="24px" color="#333333" />
+      <mj-button background-color="#007bff" color="#ffffff" border-radius="4px" font-size="16px" padding="12px 24px" />
+    </mj-attributes>
+    <mj-style>
+      .header-logo { max-height: 80px; }
+      .hero-image { width: 100%; max-width: 600px; }
+      @media only screen and (max-width: 480px) {
+        .hero-image { width: 100% !important; }
+        .cta-button { width: 100% !important; }
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <mj-section background-color="#ffffff" padding="20px 0">
+      <mj-column>
+        {% if logo_url %}
+        <mj-image 
+          src="{{ logo_url }}" 
+          alt="{{ logo_alt_text }}" 
+          width="300px"
+          align="center"
+          css-class="header-logo"
+        />
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    {% if hero_image_url %}
+    <mj-section background-color="#ffffff" padding="0">
+      <mj-column>
+        <mj-image 
+          src="{{ hero_image_url }}" 
+          alt="{{ hero_alt_text }}" 
+          width="600px"
+          align="center"
+          css-class="hero-image"
+        />
+      </mj-column>
+    </mj-section>
+    {% endif %}
+
+    <mj-section background-color="#ffffff" padding="30px 20px">
+      <mj-column>
+        {% if headline %}
+        <mj-text 
+          align="center" 
+          font-size="28px" 
+          font-weight="bold" 
+          line-height="36px" 
+          color="#1a1a1a"
+          padding="0 0 20px 0"
+        >
+          {{ headline }}
+        </mj-text>
+        {% endif %}
+
+        {% if body_paragraphs %}
+        {% for paragraph in body_paragraphs %}
+        <mj-text 
+          align="left" 
+          font-size="16px" 
+          line-height="24px" 
+          color="#333333"
+          padding="0 0 15px 0"
+        >
+          {{ paragraph }}
+        </mj-text>
+        {% endfor %}
+        {% endif %}
+
+        {% if cta_text and cta_url %}
+        <mj-button 
+          href="{{ cta_url }}" 
+          align="center"
+          background-color="#007bff"
+          color="#ffffff"
+          border-radius="4px"
+          font-size="16px"
+          padding="12px 24px"
+          css-class="cta-button"
+        >
+          {{ cta_text }}
+        </mj-button>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    {% if product_images and product_images|length > 0 %}
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text align="center" font-size="20px" font-weight="bold" padding="0 0 20px 0">
+          Featured Products
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="0 20px 20px 20px">
+      {% if product_images|length == 1 %}
+      <mj-column width="100%">
+        <mj-image 
+          src="{{ product_images[0].url }}" 
+          alt="{{ product_images[0].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      {% elif product_images|length == 2 %}
+      <mj-column width="50%">
+        <mj-image 
+          src="{{ product_images[0].url }}" 
+          alt="{{ product_images[0].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      <mj-column width="50%">
+        <mj-image 
+          src="{{ product_images[1].url }}" 
+          alt="{{ product_images[1].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      {% else %}
+      <mj-column width="33.33%">
+        <mj-image 
+          src="{{ product_images[0].url }}" 
+          alt="{{ product_images[0].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      <mj-column width="33.33%">
+        <mj-image 
+          src="{{ product_images[1].url }}" 
+          alt="{{ product_images[1].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      <mj-column width="33.33%">
+        <mj-image 
+          src="{{ product_images[2].url }}" 
+          alt="{{ product_images[2].alt_text }}" 
+          border-radius="4px"
+        />
+      </mj-column>
+      {% endif %}
+    </mj-section>
+    {% endif %}
+
+    <mj-section background-color="#f8f8f8" padding="30px 20px">
+      <mj-column>
+        {% if footer_text %}
+        <mj-text 
+          align="center" 
+          font-size="12px" 
+          line-height="18px" 
+          color="#666666"
+          padding="0"
+        >
+          {{ footer_text }}
+        </mj-text>
+        {% else %}
+        <mj-text 
+          align="center" 
+          font-size="12px" 
+          line-height="18px" 
+          color="#666666"
+          padding="0"
+        >
+          © {{ advertiser_name }}. All rights reserved.
+        </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+

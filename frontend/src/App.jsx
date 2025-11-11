@@ -1,25 +1,28 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ToastProvider } from './contexts/ToastContext';
+import UploadPage from './pages/UploadPage';
+import PreviewPage from './pages/PreviewPage';
+import SuccessPage from './pages/SuccessPage';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Routes>
-          <Route path="/" element={
-            <div className="container mx-auto px-4 py-8">
-              <h1 className="text-3xl font-bold text-gray-900">
-                HiBid Email MVP
-              </h1>
-              <p className="mt-4 text-gray-600">
-                Frontend is running! Backend setup in progress.
-              </p>
-            </div>
-          } />
-        </Routes>
-      </div>
-    </Router>
-  )
+    <ErrorBoundary>
+      <ToastProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<UploadPage />} />
+              <Route path="/preview/:campaignId" element={<PreviewPage />} />
+              <Route path="/success/:campaignId" element={<SuccessPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </ToastProvider>
+    </ErrorBoundary>
+  );
 }
 
-export default App
+export default App;
 

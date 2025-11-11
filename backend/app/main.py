@@ -3,11 +3,25 @@ HiBid Email MVP - FastAPI Application
 Main entry point for the backend API
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from app.config import settings
 from app.database import db
 from app.services.s3_service import s3_service
+from app.utils.error_handlers import (
+    http_exception_handler,
+    validation_exception_handler,
+    campaign_not_found_handler,
+    campaign_state_error_handler,
+    s3_error_handler,
+    ai_processing_error_handler,
+    general_exception_handler,
+    CampaignNotFoundError,
+    CampaignStateError,
+    S3Error,
+    AIProcessingError
+)
 import logging
 
 # Configure logging
@@ -51,6 +65,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Register global exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(CampaignNotFoundError, campaign_not_found_handler)
+app.add_exception_handler(CampaignStateError, campaign_state_error_handler)
+app.add_exception_handler(S3Error, s3_error_handler)
+app.add_exception_handler(AIProcessingError, ai_processing_error_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -60,14 +83,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routers (will be added in future PRs)
-# from app.routes import upload, process, generate, preview, approve, download
-# app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
-# app.include_router(process.router, prefix="/api/v1", tags=["process"])
-# app.include_router(generate.router, prefix="/api/v1", tags=["generate"])
-# app.include_router(preview.router, prefix="/api/v1", tags=["preview"])
-# app.include_router(approve.router, prefix="/api/v1", tags=["approve"])
-# app.include_router(download.router, prefix="/api/v1", tags=["download"])
+# Include API routers
+from app.routes import upload, process, generate, preview, approve, download
+app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
+app.include_router(process.router, prefix="/api/v1", tags=["process"])
+app.include_router(generate.router, prefix="/api/v1", tags=["generate"])
+app.include_router(preview.router, prefix="/api/v1", tags=["preview"])
+app.include_router(approve.router, prefix="/api/v1", tags=["approve"])
+app.include_router(download.router, prefix="/api/v1", tags=["download"])
 
 
 @app.get("/health")
