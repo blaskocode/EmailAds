@@ -3,7 +3,7 @@ HiBid Email MVP - FastAPI Application
 Main entry point for the backend API
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from app.config import settings
