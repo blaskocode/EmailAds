@@ -1,0 +1,146 @@
+graph TB
+    subgraph "CLIENT BROWSER"
+        UI[React Frontend<br/>Port 3000]
+        UI_UPLOAD[Upload Page<br/>Asset Collection]
+        UI_PREVIEW[Preview Page<br/>Desktop + Mobile Views]
+        UI_SUCCESS[Success Page<br/>Download HTML]
+    end
+
+    subgraph "BACKEND API - FastAPI<br/>Port 8000"
+        API[API Gateway<br/>CORS + Routing]
+        
+        subgraph "API Endpoints"
+            EP_UPLOAD[POST /api/v1/upload<br/>File Upload Handler]
+            EP_PROCESS[POST /api/v1/process/:id<br/>AI Processing Trigger]
+            EP_GENERATE[POST /api/v1/generate/:id<br/>Proof Generation]
+            EP_PREVIEW[GET /api/v1/preview/:id<br/>Preview Data]
+            EP_APPROVE[POST /api/v1/approve/:id<br/>Approval Handler]
+            EP_DOWNLOAD[GET /api/v1/download/:id<br/>HTML Export]
+        end
+        
+        subgraph "Services Layer"
+            SVC_FILE[File Service<br/>Upload + Validation]
+            SVC_CAMPAIGN[Campaign Service<br/>CRUD Operations]
+            SVC_AI[AI Service<br/>OpenAI Integration]
+            SVC_IMAGE[Image Service<br/>Processing + Optimization]
+            SVC_TEMPLATE[Template Service<br/>MJML → HTML]
+            SVC_PROOF[Proof Service<br/>Generation + Storage]
+            SVC_S3[S3 Service<br/>AWS Integration]
+        end
+    end
+
+    subgraph "EXTERNAL SERVICES"
+        OPENAI[OpenAI API<br/>GPT-4 + Vision]
+        S3[AWS S3<br/>Asset Storage]
+        DB[(SQLite Database<br/>Campaign Metadata)]
+    end
+
+    subgraph "DATA FLOW: Upload Phase"
+        FLOW1[1. User uploads<br/>logo + images + text]
+        FLOW2[2. Files validated<br/>+ uploaded to S3]
+        FLOW3[3. Campaign record<br/>created in DB]
+        FLOW4[4. Return campaign_id]
+    end
+
+    subgraph "DATA FLOW: AI Processing Phase"
+        FLOW5[5. Trigger AI<br/>processing]
+        FLOW6[6. Parallel processing:<br/>Text + Images]
+        FLOW7[7. GPT-4: Content<br/>optimization]
+        FLOW8[8. GPT-4V: Alt text<br/>+ image analysis]
+        FLOW9[9. Image resize<br/>+ compression]
+        FLOW10[10. Store AI results<br/>in DB]
+    end
+
+    subgraph "DATA FLOW: Proof Generation Phase"
+        FLOW11[11. Fetch campaign<br/>+ AI data]
+        FLOW12[12. Populate MJML<br/>template]
+        FLOW13[13. Convert to HTML<br/>+ inline CSS]
+        FLOW14[14. Upload proof<br/>to S3]
+        FLOW15[15. Return preview<br/>data <5 sec]
+    end
+
+    subgraph "DATA FLOW: Approval Phase"
+        FLOW16[16. User approves<br/>campaign]
+        FLOW17[17. Generate final<br/>HTML]
+        FLOW18[18. Upload to S3]
+        FLOW19[19. Provide download<br/>link]
+    end
+
+    %% Client connections
+    UI --> UI_UPLOAD
+    UI --> UI_PREVIEW
+    UI --> UI_SUCCESS
+    
+    UI_UPLOAD -->|Upload Assets| API
+    UI_PREVIEW -->|Get Preview| API
+    UI_SUCCESS -->|Download| API
+
+    %% API routing
+    API --> EP_UPLOAD
+    API --> EP_PROCESS
+    API --> EP_GENERATE
+    API --> EP_PREVIEW
+    API --> EP_APPROVE
+    API --> EP_DOWNLOAD
+
+    %% Endpoint to Service connections
+    EP_UPLOAD --> SVC_FILE
+    EP_UPLOAD --> SVC_CAMPAIGN
+    EP_PROCESS --> SVC_AI
+    EP_PROCESS --> SVC_IMAGE
+    EP_GENERATE --> SVC_TEMPLATE
+    EP_GENERATE --> SVC_PROOF
+    EP_PREVIEW --> SVC_CAMPAIGN
+    EP_APPROVE --> SVC_PROOF
+    EP_DOWNLOAD --> SVC_S3
+
+    %% Service to External connections
+    SVC_FILE --> S3
+    SVC_AI --> OPENAI
+    SVC_IMAGE --> OPENAI
+    SVC_CAMPAIGN --> DB
+    SVC_PROOF --> S3
+    SVC_PROOF --> DB
+    SVC_S3 --> S3
+    SVC_TEMPLATE --> SVC_PROOF
+
+    %% Data flow connections (Upload)
+    FLOW1 --> FLOW2
+    FLOW2 --> FLOW3
+    FLOW3 --> FLOW4
+    FLOW4 -.->|campaign_id| UI_PREVIEW
+
+    %% Data flow connections (AI)
+    FLOW5 --> FLOW6
+    FLOW6 --> FLOW7
+    FLOW6 --> FLOW8
+    FLOW6 --> FLOW9
+    FLOW7 --> FLOW10
+    FLOW8 --> FLOW10
+    FLOW9 --> FLOW10
+
+    %% Data flow connections (Proof)
+    FLOW11 --> FLOW12
+    FLOW12 --> FLOW13
+    FLOW13 --> FLOW14
+    FLOW14 --> FLOW15
+    FLOW15 -.->|preview data| UI_PREVIEW
+
+    %% Data flow connections (Approval)
+    FLOW16 --> FLOW17
+    FLOW17 --> FLOW18
+    FLOW18 --> FLOW19
+    FLOW19 -.->|download URL| UI_SUCCESS
+
+    %% Styling
+    classDef clientStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef backendStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef serviceStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef externalStyle fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef flowStyle fill:#fce4ec,stroke:#880e4f,stroke-width:1px
+
+    class UI,UI_UPLOAD,UI_PREVIEW,UI_SUCCESS clientStyle
+    class API,EP_UPLOAD,EP_PROCESS,EP_GENERATE,EP_PREVIEW,EP_APPROVE,EP_DOWNLOAD backendStyle
+    class SVC_FILE,SVC_CAMPAIGN,SVC_AI,SVC_IMAGE,SVC_TEMPLATE,SVC_PROOF,SVC_S3 serviceStyle
+    class OPENAI,S3,DB externalStyle
+    class FLOW1,FLOW2,FLOW3,FLOW4,FLOW5,FLOW6,FLOW7,FLOW8,FLOW9,FLOW10,FLOW11,FLOW12,FLOW13,FLOW14,FLOW15,FLOW16,FLOW17,FLOW18,FLOW19 flowStyle

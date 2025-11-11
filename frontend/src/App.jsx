@@ -1,0 +1,25 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+
+function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          <Route path="/" element={
+            <div className="container mx-auto px-4 py-8">
+              <h1 className="text-3xl font-bold text-gray-900">
+                HiBid Email MVP
+              </h1>
+              <p className="mt-4 text-gray-600">
+                Frontend is running! Backend setup in progress.
+              </p>
+            </div>
+          } />
+        </Routes>
+      </div>
+    </Router>
+  )
+}
+
+export default App
+
