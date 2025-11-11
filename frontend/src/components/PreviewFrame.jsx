@@ -1,23 +1,8 @@
 /**
  * PreviewFrame component - Renders HTML email in an iframe
+ * Uses srcdoc to inject HTML securely without needing allow-same-origin
  */
-import { useEffect, useRef } from 'react';
-
 function PreviewFrame({ html, width = '600px', title = 'Email Preview' }) {
-  const iframeRef = useRef(null);
-
-  useEffect(() => {
-    if (iframeRef.current && html) {
-      const iframe = iframeRef.current;
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      
-      // Write HTML to iframe
-      iframeDoc.open();
-      iframeDoc.write(html);
-      iframeDoc.close();
-    }
-  }, [html]);
-
   if (!html) {
     return (
       <div 
@@ -36,14 +21,14 @@ function PreviewFrame({ html, width = '600px', title = 'Email Preview' }) {
         style={{ width }}
       >
         <iframe
-          ref={iframeRef}
           title={title}
           className="w-full border-0"
           style={{ 
             minHeight: '600px',
             display: 'block'
           }}
-          sandbox="allow-same-origin allow-scripts"
+          sandbox="allow-scripts"
+          srcDoc={html}
         />
       </div>
     </div>

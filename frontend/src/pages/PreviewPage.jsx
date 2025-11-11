@@ -1,13 +1,13 @@
 /**
  * Preview page - Shows desktop and mobile preview of email campaign
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import PreviewFrame from '../components/PreviewFrame';
 import CampaignDetails from '../components/CampaignDetails';
 import ApprovalButtons from '../components/ApprovalButtons';
-import { getPreview, generateProof, processCampaign } from '../services/api';
+import { getPreview, generateProof, processCampaign, getCampaignStatus } from '../services/api';
 
 function PreviewPage() {
   const { campaignId } = useParams();
@@ -17,48 +17,83 @@ function PreviewPage() {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('both'); // 'desktop', 'mobile', 'both'
   const [refreshing, setRefreshing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Track if we're automatically processing
+  const processingRef = useRef(false); // Prevent duplicate processing
 
   useEffect(() => {
     loadPreview();
   }, [campaignId]);
 
   const loadPreview = async () => {
+    // Prevent duplicate processing (React StrictMode runs effects twice in dev)
+    if (processingRef.current) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       
-      // Try to get preview data
-      const data = await getPreview(campaignId);
-      setPreviewData(data);
-    } catch (err) {
-      console.error('Error loading preview:', err);
+      // First, check campaign status to avoid unnecessary 400 errors
+      const statusResponse = await getCampaignStatus(campaignId);
       
-      // If preview doesn't exist, process and generate proof first
-      if (err.response?.status === 400 || err.response?.status === 404) {
+      // If campaign can't be previewed yet, process and generate first
+      if (!statusResponse.can_preview) {
+        setIsProcessing(true);
+        processingRef.current = true;
+        
         try {
-          // Step 1: Process campaign (AI processing)
-          try {
-            await processCampaign(campaignId);
-          } catch (processErr) {
-            // If already processed, that's okay - continue to generate
-            if (processErr.response?.status !== 400) {
-              throw processErr;
+          // Step 1: Process campaign (if needed)
+          if (statusResponse.status === 'uploaded') {
+            try {
+              await processCampaign(campaignId);
+            } catch (processErr) {
+              // Check if it's already processed
+              const processErrorMsg = processErr.response?.data?.detail || 
+                                     processErr.response?.data?.message || '';
+              const alreadyProcessed = processErrorMsg.toLowerCase().includes('already processed') || 
+                                      processErrorMsg.toLowerCase().includes('processed') ||
+                                      processErr.response?.status === 200;
+              
+              if (!alreadyProcessed) {
+                throw processErr;
+              }
             }
           }
           
-          // Step 2: Generate proof
-          await generateProof(campaignId);
+          // Step 2: Generate proof (if needed)
+          if (statusResponse.status !== 'ready') {
+            await generateProof(campaignId);
+          }
           
           // Step 3: Get preview
           const data = await getPreview(campaignId);
           setPreviewData(data);
+          setError(null);
+          setIsProcessing(false);
         } catch (genErr) {
           console.error('Error processing/generating preview:', genErr);
-          setError(genErr.response?.data?.detail || 'Failed to generate preview. Please try again.');
+          const genErrorMsg = genErr.response?.data?.detail || 
+                            genErr.response?.data?.message || 
+                            genErr.message;
+          setError(genErrorMsg || 'Failed to generate preview. Please try again.');
+          setIsProcessing(false);
+        } finally {
+          processingRef.current = false;
         }
       } else {
-        setError(err.response?.data?.detail || 'Failed to load preview');
+        // Campaign is ready, get preview directly
+        const data = await getPreview(campaignId);
+        setPreviewData(data);
+        setError(null);
       }
+    } catch (err) {
+      console.error('Error loading preview:', err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'Failed to load preview';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -79,17 +114,17 @@ function PreviewPage() {
     }
   };
 
-  if (loading) {
+  if (loading || isProcessing) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="bg-white rounded-lg shadow-sm p-8">
-          <Loading message="Loading preview..." />
+          <Loading message={isProcessing ? "Processing campaign..." : "Loading preview..."} />
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !isProcessing) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="bg-white rounded-lg shadow-sm p-8">

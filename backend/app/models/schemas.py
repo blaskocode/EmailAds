@@ -77,6 +77,13 @@ class CampaignResponse(BaseModel):
     proof_s3_path: Optional[str] = None
 
 
+class CampaignStatusResponse(BaseModel):
+    """Response schema for campaign status check"""
+    campaign_id: str
+    status: str
+    can_preview: bool  # True if status is 'ready' or 'processed'
+
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str

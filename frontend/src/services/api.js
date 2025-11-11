@@ -71,34 +71,63 @@ api.interceptors.response.use(
       // Extract user-friendly message
       const message = data?.message || data?.detail || `Error ${status}`;
       
+      // Check if this is an expected error that we handle gracefully
+      // (e.g., preview endpoint saying campaign needs processing)
+      // Check multiple possible URL locations in the error object
+      const requestUrl = config?.url || error.config?.url || '';
+      const fullUrl = error.request?.responseURL || error.config?.url || '';
+      const baseUrl = config?.baseURL || error.config?.baseURL || '';
+      const fullRequestUrl = fullUrl || (baseUrl + requestUrl) || '';
+      
+      // Check if this is a preview endpoint error
+      const isPreviewEndpoint = requestUrl.includes('/preview/') || 
+                               fullUrl.includes('/preview/') ||
+                               fullRequestUrl.includes('/preview/');
+      
+      // Check if the error message indicates this is an expected "needs processing" error
+      const messageLower = message?.toLowerCase() || '';
+      const isProcessingError = messageLower.includes('must be processed') ||
+                               messageLower.includes('invalid state') ||
+                               messageLower.includes('process the campaign') ||
+                               messageLower.includes('draft');
+      
+      // If it's a processing error message, it's almost certainly from preview endpoint
+      // Suppress logging for these expected errors (URL check is nice-to-have but message is definitive)
+      const isExpectedError = status === 400 && 
+                             message &&
+                             isProcessingError;
+      
       // Create enhanced error with user-friendly message
       error.userMessage = message;
       error.errorDetails = data?.details || null;
       
-      switch (status) {
-        case 400:
-          console.error('Bad Request:', data);
-          break;
-        case 401:
-          console.error('Unauthorized:', data);
-          break;
-        case 404:
-          console.error('Not Found:', data);
-          break;
-        case 422:
-          console.error('Validation Error:', data);
-          break;
-        case 500:
-          console.error('Server Error:', data);
-          break;
-        case 502:
-          console.error('Bad Gateway:', data);
-          break;
-        case 503:
-          console.error('Service Unavailable:', data);
-          break;
-        default:
-          console.error('API Error:', data);
+      // Only log unexpected errors or errors that aren't handled gracefully
+      if (!isExpectedError) {
+        switch (status) {
+          case 400:
+            console.error('Bad Request:', data);
+            break;
+          case 401:
+            console.error('Unauthorized:', data);
+            break;
+          case 404:
+            console.error('Not Found:', data);
+            break;
+          case 422:
+            console.error('Validation Error:', data);
+            break;
+          case 500:
+            console.error('Server Error:', data);
+            break;
+          case 502:
+            console.error('Bad Gateway:', data);
+            break;
+          case 503:
+            console.error('Service Unavailable:', data);
+            break;
+          default:
+            console.error('API Error:', data);
+        }
       }
     } else if (error.request) {
       // Request made but no response
@@ -148,6 +177,16 @@ export const processCampaign = async (campaignId) => {
  */
 export const generateProof = async (campaignId) => {
   const response = await api.post(`/generate/${campaignId}`);
+  return response.data;
+};
+
+/**
+ * Get campaign status
+ * @param {string} campaignId - Campaign ID
+ * @returns {Promise} Status response
+ */
+export const getCampaignStatus = async (campaignId) => {
+  const response = await api.get(`/campaigns/${campaignId}/status`);
   return response.data;
 };
 
