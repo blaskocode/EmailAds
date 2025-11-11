@@ -204,10 +204,14 @@ export const getPreview = async (campaignId) => {
  * Approve or reject campaign
  * @param {string} campaignId - Campaign ID
  * @param {string} decision - 'approve' or 'reject'
+ * @param {string} feedback - Optional feedback or comments
  * @returns {Promise} Approval response
  */
-export const approveCampaign = async (campaignId, decision) => {
-  const response = await api.post(`/approve/${campaignId}`, { decision });
+export const approveCampaign = async (campaignId, decision, feedback = null) => {
+  const response = await api.post(`/approve/${campaignId}`, { 
+    decision,
+    feedback: feedback || null
+  });
   return response.data;
 };
 
@@ -219,6 +223,39 @@ export const approveCampaign = async (campaignId, decision) => {
 export const downloadCampaign = async (campaignId) => {
   const response = await api.get(`/download/${campaignId}`, {
     responseType: 'blob',
+  });
+  return response.data;
+};
+
+/**
+ * List all campaigns
+ * @param {Object} params - Query parameters (status, limit, offset)
+ * @returns {Promise} Campaign list response
+ */
+export const listCampaigns = async (params = {}) => {
+  const response = await api.get('/campaigns', { params });
+  return response.data;
+};
+
+/**
+ * Get campaign detail by ID
+ * @param {string} campaignId - Campaign ID
+ * @returns {Promise} Campaign detail response
+ */
+export const getCampaignDetail = async (campaignId) => {
+  const response = await api.get(`/campaigns/${campaignId}`);
+  return response.data;
+};
+
+/**
+ * Reset a rejected campaign to uploaded status
+ * @param {string} campaignId - Campaign ID
+ * @param {boolean} clearFeedback - Whether to clear feedback
+ * @returns {Promise} Updated campaign response
+ */
+export const resetCampaign = async (campaignId, clearFeedback = false) => {
+  const response = await api.post(`/campaigns/${campaignId}/reset`, null, {
+    params: { clear_feedback: clearFeedback }
   });
   return response.data;
 };

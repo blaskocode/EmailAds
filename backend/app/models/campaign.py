@@ -23,7 +23,8 @@ class Campaign:
         html_s3_path: Optional[str] = None,
         proof_s3_path: Optional[str] = None,
         ai_processing_data: Optional[Dict[str, Any]] = None,
-        updated_at: Optional[str] = None
+        updated_at: Optional[str] = None,
+        feedback: Optional[str] = None
     ):
         self.id = id or str(uuid.uuid4())
         self.campaign_name = campaign_name
@@ -36,6 +37,7 @@ class Campaign:
         self.proof_s3_path = proof_s3_path
         self.ai_processing_data = ai_processing_data or {}
         self.updated_at = updated_at or datetime.utcnow().isoformat()
+        self.feedback = feedback
     
     @classmethod
     def from_row(cls, row):
@@ -58,7 +60,8 @@ class Campaign:
             html_s3_path=row.get('html_s3_path'),
             proof_s3_path=row.get('proof_s3_path'),
             ai_processing_data=ai_data,
-            updated_at=row.get('updated_at')
+            updated_at=row.get('updated_at'),
+            feedback=row.get('feedback')
         )
     
     def to_dict(self):
@@ -74,7 +77,8 @@ class Campaign:
             'html_s3_path': self.html_s3_path,
             'proof_s3_path': self.proof_s3_path,
             'ai_processing_data': self.ai_processing_data,
-            'updated_at': self.updated_at
+            'updated_at': self.updated_at,
+            'feedback': self.feedback
         }
     
     async def save(self, conn):
@@ -88,8 +92,8 @@ class Campaign:
                 INSERT OR REPLACE INTO campaigns 
                 (id, campaign_name, advertiser_name, status, created_at, 
                  approved_at, assets_s3_path, html_s3_path, proof_s3_path, 
-                 ai_processing_data, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ai_processing_data, updated_at, feedback)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 self.id,
                 self.campaign_name,
@@ -101,7 +105,8 @@ class Campaign:
                 self.html_s3_path,
                 self.proof_s3_path,
                 json.dumps(self.ai_processing_data) if self.ai_processing_data else None,
-                self.updated_at
+                self.updated_at,
+                self.feedback
             ))
             await conn.commit()
     
@@ -144,15 +149,15 @@ class Campaign:
             return [Campaign.from_row(dict(row)) for row in rows]
     
     @staticmethod
-    async def get_by_status(conn, status: str, limit: int = 100):
-        """Get campaigns by status"""
+    async def get_by_status(conn, status: str, limit: int = 100, offset: int = 0):
+        """Get campaigns by status with pagination"""
         async with conn.cursor() as cursor:
             await cursor.execute("""
                 SELECT * FROM campaigns 
                 WHERE status = ?
                 ORDER BY created_at DESC 
-                LIMIT ?
-            """, (status, limit))
+                LIMIT ? OFFSET ?
+            """, (status, limit, offset))
             rows = await cursor.fetchall()
             
             return [Campaign.from_row(dict(row)) for row in rows]

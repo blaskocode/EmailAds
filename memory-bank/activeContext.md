@@ -8,27 +8,53 @@
 ## Current Work Focus
 
 ### Recently Completed
-1. ✅ **Fixed Database Connection Issues**
+1. ✅ **PR #20: Add Rejection Confirmation Dialog & Update Navigation**
+   - Frontend: Added `showRejectConfirm` state to ApprovalButtons component
+   - Added confirmation dialog for rejection (similar to approval flow)
+   - Confirmation dialog displays feedback if provided
+   - Updated rejection navigation to navigate to `/campaigns` instead of `/`
+   - Removed state message about editing (no longer needed)
+   - Users now see rejected campaigns in the campaigns list with feedback
+
+2. ✅ **PR #19: Add "View All Campaigns" Button to Success Page**
+   - Frontend: Added "View All Campaigns" button to SuccessPage component
+   - Button placed alongside "View Preview Again" and "Create New Campaign"
+   - Navigates to `/campaigns` route
+   - Styled consistently with other navigation buttons (secondary style)
+   - Provides easy navigation to view all campaigns after approval
+
+3. ✅ **PR #18: Load and Display Existing Campaign Files When Editing**
+   - Backend: Added `ai_processing_data` field to CampaignResponse schema
+   - Backend: Updated campaign detail endpoint to include presigned URLs for files
+   - Frontend: Created utility to download files from presigned URLs and convert to File objects
+   - Frontend: Updated UploadPage to load and display existing files when editing
+   - Frontend: Pre-fill all form fields from `ai_processing_data.content`
+   - Users can now see existing files and optionally replace them when editing campaigns
+   - **Bug Fix:** Editing rejected campaigns now updates existing campaign instead of creating duplicates
+   - **Bug Fix:** Campaign metadata changes (name, advertiser, content) are now properly saved when resubmitting
+   - **Bug Fix:** Status updates correctly after approval (shows 'approved' not 'rejected' in campaign list)
+
+3. ✅ **Fixed Database Connection Issues**
    - Resolved "no active connection" errors
    - Fixed generator exception handling
    - Improved connection management
 
-2. ✅ **Enhanced Error Handling**
+4. ✅ **Enhanced Error Handling**
    - Better error messages in upload route
    - Improved frontend error display
    - Specific error handling for each operation
 
-3. ✅ **Fixed Preview Workflow**
+5. ✅ **Fixed Preview Workflow**
    - Auto-processing of campaigns before preview
    - Auto-generation of proofs
    - Better error handling for unprocessed campaigns
 
-4. ✅ **Testing Infrastructure**
+6. ✅ **Testing Infrastructure**
    - Backend test suite (pytest)
    - Frontend test suite (Vitest)
    - Test configuration files
 
-5. ✅ **Documentation**
+7. ✅ **Documentation**
    - API documentation (API_DOCS.md)
    - Production readiness checklist
    - Troubleshooting guides
@@ -53,6 +79,16 @@
    - **Fix:** Frontend now auto-processes and generates proof before preview
    - **Status:** ✅ Fixed
 
+4. **Editing Rejected Campaigns Creating Duplicates**
+   - **Issue:** When editing a rejected campaign, upload route created new campaign instead of updating existing one
+   - **Fix:** Added optional `campaign_id` parameter to upload route. When provided and campaign is rejected, updates existing campaign instead of creating new one
+   - **Status:** ✅ Fixed
+
+5. **Campaign Metadata Changes Not Saving**
+   - **Issue:** When resubmitting a rejected campaign, changes to campaign_name and advertiser_name were not persisted
+   - **Fix:** Updated `update_campaign_assets()` to accept and save campaign_name and advertiser_name when provided
+   - **Status:** ✅ Fixed
+
 ---
 
 ## Current State of Components
@@ -71,6 +107,7 @@
 - ✅ API integration complete
 - ✅ Error handling improved
 - ✅ Auto-processing workflow implemented
+- ✅ Campaign editing with file loading implemented
 
 ### Testing
 - ✅ Backend test infrastructure set up
@@ -196,6 +233,8 @@
 - ✅ S3 upload functional
 - ✅ Database storage working
 - ✅ Error handling improved
+- ✅ Update existing campaigns when editing (no duplicates)
+- ✅ Save all metadata changes when resubmitting
 
 ### Processing Flow
 - ✅ AI processing functional
@@ -236,11 +275,20 @@
 ## Recent Changes Summary
 
 **Last Session:**
+- Completed PR #18: Load and Display Existing Campaign Files When Editing
+  - Backend: Added ai_processing_data to campaign responses with presigned URLs
+  - Frontend: Implemented file loading from S3 and form pre-filling
+  - Users can now edit campaigns with existing files displayed
+  - Fixed bug: Editing rejected campaigns now updates existing campaign instead of creating duplicates
+  - Fixed bug: Campaign metadata changes (name, advertiser) are now properly saved when resubmitting
+  - Status updates correctly after approval (shows 'approved' not 'rejected' in campaign list)
+
+**Previous Session:**
 - Fixed database connection generator error
 - Improved upload error handling
 - Enhanced preview workflow
 - Added automatic processing
 - Created memory bank structure
 
-**Status:** All critical issues resolved, MVP ready for deployment
+**Status:** PR #20 completed. Rejection now requires confirmation dialog and navigates to campaigns list. All planned PRs completed!
 

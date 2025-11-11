@@ -83,9 +83,15 @@ All I/O operations are async:
 **Multi-step Process:**
 1. Validate file type and size
 2. Read file content
-3. Upload to S3
-4. Store metadata in database
-5. Return campaign ID
+3. Check if updating existing campaign (if campaign_id provided)
+4. Upload to S3
+5. Store metadata in database
+6. Return campaign ID
+
+**Update vs Create:**
+- If `campaign_id` provided and campaign exists with status 'rejected', update existing campaign
+- Otherwise, create new campaign
+- When updating: reset status to 'uploaded', clear old proof/HTML paths, save all metadata changes
 
 **Error Recovery:**
 - Validation errors return 400 immediately

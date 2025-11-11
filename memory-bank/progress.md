@@ -7,7 +7,7 @@
 
 ## Completion Status
 
-### All 13 PRs Completed ✅
+### All 20 PRs Completed ✅ (13 MVP + 7 Post-MVP)
 
 **Phase 1: Foundation (0-8h)** ✅
 - ✅ PR #1: Project setup & infrastructure
@@ -30,6 +30,15 @@
 - ✅ PR #12: Error handling & validation
 - ✅ PR #13: Testing, documentation & deployment
 
+**Phase 5: Post-MVP Enhancements (36h+)** ✅
+- ✅ PR #14: Backend - Add feedback field to database & models
+- ✅ PR #15: Backend - Update approval route to store feedback
+- ✅ PR #16: Frontend - Add feedback UI & display
+- ✅ PR #17: Backend & Frontend - Campaign list & management
+- ✅ PR #18: Frontend - Load and display existing campaign files when editing
+- ✅ PR #19: Frontend - Add "View All Campaigns" button to success page
+- ✅ PR #20: Frontend - Add rejection confirmation dialog & update navigation
+
 ---
 
 ## What Works
@@ -41,6 +50,8 @@
    - ✅ S3 storage integration
    - ✅ Campaign metadata capture
    - ✅ Error handling improved
+   - ✅ Load existing files when editing campaigns
+   - ✅ Pre-fill form fields from existing campaign data
 
 2. **AI Processing**
    - ✅ GPT-4 text content optimization
@@ -68,12 +79,22 @@
    - ✅ Final HTML generation
    - ✅ Download capability
    - ✅ Status tracking
+   - ✅ Feedback collection and storage
 
 6. **Error Handling**
    - ✅ Comprehensive error handlers
    - ✅ User-friendly error messages
    - ✅ Validation at all levels
    - ✅ Graceful degradation
+
+7. **Campaign Management**
+   - ✅ Campaign list view with filtering
+   - ✅ Campaign detail view
+   - ✅ Edit/reject/reset campaigns
+   - ✅ Load existing files when editing
+   - ✅ Pre-fill form data from existing campaigns
+   - ✅ Update existing campaigns when resubmitting (no duplicates)
+   - ✅ Save all metadata changes (name, advertiser, content) when editing
 
 ### Infrastructure ✅
 - ✅ Docker configuration
@@ -153,6 +174,8 @@
 2. ✅ Upload 500 errors - Fixed
 3. ✅ Preview not loading - Fixed
 4. ✅ Generator exception errors - Fixed
+5. ✅ Editing rejected campaigns creating duplicates - Fixed (now updates existing campaign)
+6. ✅ Campaign metadata changes not saving when resubmitting - Fixed (all changes now persist)
 
 ### Minor Issues
 1. ⚠️ Test coverage below target (needs expansion)
@@ -221,12 +244,13 @@
 
 - **Total Commits:** 4 major commits
 - **Files Created:** 50+ files
-- **Lines of Code:** ~4,500+ lines
+- **Lines of Code:** ~5,000+ lines
 - **API Endpoints:** 6 endpoints
 - **Services:** 7 core services
 - **Components:** 15+ React components
 - **Test Files:** 5+ test files
 - **Documentation Files:** 10+ documentation files
+- **Post-MVP PRs Completed:** 7 (PRs #14-20)
 
 ---
 
@@ -243,6 +267,22 @@
 ---
 
 ## Version History
+
+- **v1.1.2** (November 2025) - Post-MVP Enhancements (continued)
+  - PR #20 completed
+  - Added rejection confirmation dialog
+  - Updated rejection navigation to campaigns list
+
+- **v1.1.1** (November 2025) - Post-MVP Enhancements (continued)
+  - PR #19 completed
+  - Added "View All Campaigns" navigation to success page
+
+- **v1.1.0** (November 2025) - Post-MVP Enhancements
+  - PRs #14-18 completed
+  - Campaign management features added
+  - File loading when editing implemented
+  - Feedback system implemented
+  - Campaign editing bug fixes (no duplicates, metadata persistence)
 
 - **v1.0.0** (November 2025) - MVP Complete
   - All 13 PRs completed

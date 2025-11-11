@@ -170,6 +170,13 @@ function SuccessPage() {
             </button>
             
             <Link
+              to="/campaigns"
+              className="block w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              View All Campaigns
+            </Link>
+            
+            <Link
               to="/"
               className="block w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >

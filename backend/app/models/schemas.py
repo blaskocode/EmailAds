@@ -2,7 +2,7 @@
 Pydantic schemas for request/response validation
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from uuid import UUID
 
@@ -53,6 +53,7 @@ class PreviewResponse(BaseModel):
 class ApprovalRequest(BaseModel):
     """Request schema for approval"""
     decision: str = Field(..., pattern="^(approve|reject)$")
+    feedback: Optional[str] = Field(None, max_length=2000, description="Optional feedback or comments for the approval decision")
 
 
 class ApprovalResponse(BaseModel):
@@ -61,6 +62,7 @@ class ApprovalResponse(BaseModel):
     status: str
     download_url: Optional[str] = None
     message: str
+    feedback: Optional[str] = None
 
 
 # Response Schemas
@@ -75,6 +77,16 @@ class CampaignResponse(BaseModel):
     assets_s3_path: Optional[str] = None
     html_s3_path: Optional[str] = None
     proof_s3_path: Optional[str] = None
+    feedback: Optional[str] = None
+    ai_processing_data: Optional[Dict[str, Any]] = None
+
+
+class CampaignListResponse(BaseModel):
+    """Response schema for campaign list"""
+    campaigns: List[CampaignResponse]
+    total: int
+    limit: int
+    offset: int
 
 
 class CampaignStatusResponse(BaseModel):

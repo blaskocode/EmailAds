@@ -13,7 +13,8 @@ Phase 1: Foundation (0-8h)     → 3 PRs
 Phase 2: Core Features (8-20h) → 5 PRs  
 Phase 3: UI & Approval (20-28h)→ 3 PRs
 Phase 4: Polish (28-36h)       → 2 PRs
-                        TOTAL: 13 PRs
+Phase 5: Post-MVP (36h+)        → 4 PRs
+                        TOTAL: 17 PRs
 ```
 
 ---
@@ -23,15 +24,16 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #1: Project Setup & Infrastructure
 **Branch:** `feature/project-setup`  
 **Time Estimate:** 2 hours  
-**Dependencies:** None
+**Dependencies:** None  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **1.1** Initialize Git repository
+- [x] **1.1** Initialize Git repository
   - Create .gitignore (Python, Node, env files)
   - Set up main branch
   - Create README.md with project overview
 
-- [ ] **1.2** Set up project structure
+- [x] **1.2** Set up project structure
   ```
   hibid-email-mvp/
   ├── backend/
@@ -59,13 +61,13 @@ Phase 4: Polish (28-36h)       → 2 PRs
   └── README.md
   ```
 
-- [ ] **1.3** Create Docker configuration
+- [x] **1.3** Create Docker configuration
   - Backend Dockerfile (Python 3.11)
   - Frontend Dockerfile (Node 18)
   - docker-compose.yml for local development
   - Health check endpoints
 
-- [ ] **1.4** Set up environment variables
+- [x] **1.4** Set up environment variables
   - .env.example template
   - Configuration validation
   - Secret management structure
@@ -87,10 +89,11 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #2: Backend Foundation & Database
 **Branch:** `feature/backend-foundation`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #1
+**Dependencies:** PR #1  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **2.1** Install backend dependencies
+- [x] **2.1** Install backend dependencies
   ```
   fastapi==0.104.1
   uvicorn[standard]==0.24.0
@@ -103,25 +106,25 @@ Phase 4: Polish (28-36h)       → 2 PRs
   aiosqlite==0.19.0
   ```
 
-- [ ] **2.2** Create FastAPI application structure
+- [x] **2.2** Create FastAPI application structure
   - main.py with CORS middleware
   - config.py with settings (Pydantic BaseSettings)
   - Health check endpoint
   - API versioning (/api/v1/)
 
-- [ ] **2.3** Set up SQLite database
+- [x] **2.3** Set up SQLite database
   - Create database schema (campaigns table)
   - Database connection manager
   - Async database operations with aiosqlite
   - Migration script (initial schema)
 
-- [ ] **2.4** Create data models
+- [x] **2.4** Create data models
   - Pydantic models for request/response
   - SQLAlchemy models for database
   - Campaign model with all fields
   - Asset metadata model
 
-- [ ] **2.5** AWS S3 integration setup
+- [x] **2.5** AWS S3 integration setup
   - boto3 client initialization
   - S3 upload utility functions
   - Signed URL generation
@@ -147,17 +150,18 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #3: Frontend Foundation
 **Branch:** `feature/frontend-foundation`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #1
+**Dependencies:** PR #1  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **3.1** Initialize React + Vite project
+- [x] **3.1** Initialize React + Vite project
   ```bash
   npm create vite@latest frontend -- --template react
   cd frontend
   npm install
   ```
 
-- [ ] **3.2** Install frontend dependencies
+- [x] **3.2** Install frontend dependencies
   ```
   axios
   react-router-dom
@@ -167,25 +171,25 @@ Phase 4: Polish (28-36h)       → 2 PRs
   autoprefixer
   ```
 
-- [ ] **3.3** Configure Tailwind CSS
+- [x] **3.3** Configure Tailwind CSS
   - tailwind.config.js
   - postcss.config.js
   - Import Tailwind in index.css
 
-- [ ] **3.4** Set up routing
+- [x] **3.4** Set up routing
   - React Router configuration
   - Route structure:
     - / → Upload page
     - /preview/:campaignId → Preview page
     - /success/:campaignId → Success page
 
-- [ ] **3.5** Create API service layer
+- [x] **3.5** Create API service layer
   - Axios instance with base URL
   - API methods for all endpoints
   - Error handling wrapper
   - Request/response interceptors
 
-- [ ] **3.6** Create basic layout components
+- [x] **3.6** Create basic layout components
   - Header component
   - Footer component
   - Layout wrapper
@@ -214,34 +218,35 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #4: File Upload API & Storage
 **Branch:** `feature/upload-api`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #2
+**Dependencies:** PR #2  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **4.1** Create upload endpoint
+- [x] **4.1** Create upload endpoint
   - POST /api/v1/upload
   - Multipart form data handling
   - File validation (size, type)
   - Generate unique campaign ID
 
-- [ ] **4.2** File processing utilities
+- [x] **4.2** File processing utilities
   - Image validation (PNG, JPG, JPEG)
   - File size checking (max 5MB)
   - Mime type verification
   - Temporary storage handling
 
-- [ ] **4.3** S3 upload implementation
+- [x] **4.3** S3 upload implementation
   - Upload logo to S3
   - Upload hero images to S3
   - Generate S3 object keys (campaign_id/filename)
   - Store file URLs in database
 
-- [ ] **4.4** Campaign creation logic
+- [x] **4.4** Campaign creation logic
   - Create campaign record in database
   - Store metadata (name, advertiser, timestamps)
   - Store S3 paths for assets
   - Return campaign ID to client
 
-- [ ] **4.5** Error handling
+- [x] **4.5** Error handling
   - File upload failures
   - S3 connection errors
   - Database errors
@@ -265,36 +270,37 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #5: Upload UI Component
 **Branch:** `feature/upload-ui`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #3, PR #4
+**Dependencies:** PR #3, PR #4  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **5.1** Create upload form component
+- [x] **5.1** Create upload form component
   - Campaign name input
   - Advertiser name input
   - Subject line input
   - Preview text input
   - Body copy textarea
 
-- [ ] **5.2** Implement file upload UI
+- [x] **5.2** Implement file upload UI
   - Drag-and-drop zone using react-dropzone
   - Logo upload (single file)
   - Hero images upload (1-3 files)
   - File preview thumbnails
   - Remove file functionality
 
-- [ ] **5.3** Form validation
+- [x] **5.3** Form validation
   - Required field checking
   - File size validation
   - File type validation
   - Real-time error messages
 
-- [ ] **5.4** Form submission
+- [x] **5.4** Form submission
   - Build FormData object
   - Call upload API
   - Show upload progress
   - Handle success/error states
 
-- [ ] **5.5** UX enhancements
+- [x] **5.5** UX enhancements
   - Loading states during upload
   - Success confirmation
   - Error message display
@@ -319,43 +325,44 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #6: AI Processing Integration
 **Branch:** `feature/ai-processing`  
 **Time Estimate:** 4 hours  
-**Dependencies:** PR #4
+**Dependencies:** PR #4  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **6.1** OpenAI service setup
+- [x] **6.1** OpenAI service setup
   - Initialize OpenAI client
   - API key configuration
   - Error handling for API calls
   - Rate limit management
 
-- [ ] **6.2** Text content processing
+- [x] **6.2** Text content processing
   - GPT-4 prompt for content optimization
   - Subject line generation (3 variations)
   - Preview text optimization
   - Body copy structuring
   - JSON response parsing
 
-- [ ] **6.3** Image analysis with GPT-4 Vision
+- [x] **6.3** Image analysis with GPT-4 Vision
   - Image-to-base64 conversion
   - Alt text generation for each image
   - Image quality assessment
   - Crop suggestions (if needed)
 
-- [ ] **6.4** Image optimization
+- [x] **6.4** Image optimization
   - Resize images to email-safe dimensions
   - Logo: max 300x100px
   - Hero: max 600x400px
   - File compression (target <150KB)
   - Format conversion if needed
 
-- [ ] **6.5** Process endpoint
+- [x] **6.5** Process endpoint
   - POST /api/v1/process/{campaign_id}
   - Parallel processing of text and images
   - Aggregate results
   - Store AI outputs in database
   - Return processed data
 
-- [ ] **6.6** Performance optimization
+- [x] **6.6** Performance optimization
   - Async/await for all AI calls
   - Parallel processing with asyncio.gather
   - Timeout handling (10 sec max)
@@ -380,10 +387,11 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #7: Email Template Engine
 **Branch:** `feature/email-template`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #6
+**Dependencies:** PR #6  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **7.1** Create MJML template
+- [x] **7.1** Create MJML template
   - Responsive email structure
   - Header with logo
   - Hero image section
@@ -393,25 +401,25 @@ Phase 4: Polish (28-36h)       → 2 PRs
   - Footer
   - Mobile optimization
 
-- [ ] **7.2** Template variable system
+- [x] **7.2** Template variable system
   - Define template variables
   - Variable substitution logic
   - Jinja2 or string templating
   - Safe HTML escaping
 
-- [ ] **7.3** HTML generation service
+- [x] **7.3** HTML generation service
   - MJML to HTML conversion
   - CSS inlining (inline all styles)
   - Image URL injection
   - Production HTML output
 
-- [ ] **7.4** Template population
+- [x] **7.4** Template population
   - Inject campaign content
   - Inject optimized AI content
   - Inject S3 image URLs
   - Generate alt texts
 
-- [ ] **7.5** Email client testing
+- [x] **7.5** Email client testing
   - Test HTML in Gmail
   - Test in Outlook
   - Test in Apple Mail
@@ -435,36 +443,37 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #8: Proof Generation System
 **Branch:** `feature/proof-generation`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #7
+**Dependencies:** PR #7  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **8.1** Generate endpoint
+- [x] **8.1** Generate endpoint
   - POST /api/v1/generate/{campaign_id}
   - Fetch campaign data from database
   - Fetch processed AI content
   - Call template service
 
-- [ ] **8.2** Proof generation logic
+- [x] **8.2** Proof generation logic
   - Populate template with data
   - Generate HTML proof
   - Create desktop preview
   - Create mobile preview
   - Store proof in S3
 
-- [ ] **8.3** Preview data structure
+- [x] **8.3** Preview data structure
   - HTML content for rendering
   - Metadata (subject, preview text)
   - AI suggestions
   - Image URLs
   - Timestamp
 
-- [ ] **8.4** Performance optimization
+- [x] **8.4** Performance optimization
   - Cache generated proofs
   - Async HTML generation
   - Parallel S3 uploads
   - Total time <2 seconds
 
-- [ ] **8.5** Update database
+- [x] **8.5** Update database
   - Store proof S3 URL
   - Update campaign status to 'ready'
   - Store generation timestamp
@@ -487,40 +496,41 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #9: Preview UI Component
 **Branch:** `feature/preview-ui`  
 **Time Estimate:** 4 hours  
-**Dependencies:** PR #8, PR #5
+**Dependencies:** PR #8, PR #5  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **9.1** Preview page layout
+- [x] **9.1** Preview page layout
   - Two-column layout (desktop + mobile)
   - Desktop preview (600px width)
   - Mobile preview (320px width)
   - Side-by-side comparison
 
-- [ ] **9.2** HTML rendering
+- [x] **9.2** HTML rendering
   - iframe for desktop preview
   - iframe for mobile preview
   - Sandboxed rendering
   - Responsive container
 
-- [ ] **9.3** Campaign details panel
+- [x] **9.3** Campaign details panel
   - Show campaign name
   - Show subject line
   - Show preview text
   - Show AI suggestions
   - Editable fields (stretch goal)
 
-- [ ] **9.4** Preview controls
+- [x] **9.4** Preview controls
   - Toggle desktop/mobile view
   - Fullscreen preview option
   - Refresh preview button
   - Download HTML button (coming in PR #10)
 
-- [ ] **9.5** Loading states
+- [x] **9.5** Loading states
   - Skeleton loader while generating
   - Preview loading spinner
   - Error state if generation fails
 
-- [ ] **9.6** Fetch preview data
+- [x] **9.6** Fetch preview data
   - GET /api/v1/preview/{campaign_id}
   - Display proof HTML
   - Show metadata
@@ -544,35 +554,36 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #10: Approval Workflow
 **Branch:** `feature/approval-workflow`  
 **Time Estimate:** 3 hours  
-**Dependencies:** PR #9, PR #8
+**Dependencies:** PR #9, PR #8  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **10.1** Approval endpoint
+- [x] **10.1** Approval endpoint
   - POST /api/v1/approve/{campaign_id}
   - Accept decision: 'approve' or 'reject'
   - Update campaign status
   - Generate final HTML if approved
 
-- [ ] **10.2** Final HTML generation
+- [x] **10.2** Final HTML generation
   - Create production-ready HTML
   - Inline all CSS
   - Embed or link images (configurable)
   - Upload to S3 with unique name
   - Return download URL
 
-- [ ] **10.3** Approval UI buttons
+- [x] **10.3** Approval UI buttons
   - Approve button (green, prominent)
   - Reject button (red, secondary)
   - Confirmation modal for approval
   - Loading state during processing
 
-- [ ] **10.4** Success page
+- [x] **10.4** Success page
   - Confirmation message
   - Download button for HTML
   - View preview again option
   - Start new campaign button
 
-- [ ] **10.5** Rejection flow
+- [x] **10.5** Rejection flow
   - Return to upload page
   - Pre-fill form with existing data
   - Allow editing
@@ -595,27 +606,28 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #11: Download & Export
 **Branch:** `feature/export-html`  
 **Time Estimate:** 1 hour  
-**Dependencies:** PR #10
+**Dependencies:** PR #10  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **11.1** Download endpoint
+- [x] **11.1** Download endpoint
   - GET /api/v1/download/{campaign_id}
   - Fetch final HTML from S3
   - Set correct content headers
   - Force download (not preview)
 
-- [ ] **11.2** HTML export options
+- [x] **11.2** HTML export options
   - Base64 encoded images (self-contained)
   - External image URLs (smaller file)
   - User choice in UI (optional)
 
-- [ ] **11.3** Download UI
+- [x] **11.3** Download UI
   - Download button on success page
   - File naming: {campaign_name}_{date}.html
   - Progress indicator
   - Success notification
 
-- [ ] **11.4** Alternative: Copy to clipboard
+- [x] **11.4** Alternative: Copy to clipboard
   - Copy HTML to clipboard button
   - Success toast notification
 
@@ -636,35 +648,36 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #12: Error Handling & Validation
 **Branch:** `feature/error-handling`  
 **Time Estimate:** 3 hours  
-**Dependencies:** All previous PRs
+**Dependencies:** All previous PRs  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **12.1** Backend error handling
+- [x] **12.1** Backend error handling
   - Global exception handler
   - Custom error classes
   - User-friendly error messages
   - Error logging
 
-- [ ] **12.2** Input validation
+- [x] **12.2** Input validation
   - Pydantic validators for all models
   - File type validation
   - File size validation
   - URL validation
   - Text length limits
 
-- [ ] **12.3** Frontend error handling
+- [x] **12.3** Frontend error handling
   - API error interceptor
   - User-friendly error messages
   - Error boundary component
   - Retry logic for failed requests
 
-- [ ] **12.4** Loading & feedback states
+- [x] **12.4** Loading & feedback states
   - Loading spinners for all async operations
   - Progress indicators
   - Success notifications
   - Error notifications
 
-- [ ] **12.5** Edge case handling
+- [x] **12.5** Edge case handling
   - Network failures
   - API timeouts
   - Large file uploads
@@ -688,49 +701,50 @@ Phase 4: Polish (28-36h)       → 2 PRs
 ## PR #13: Testing, Documentation & Deployment
 **Branch:** `feature/testing-docs-deploy`  
 **Time Estimate:** 5 hours  
-**Dependencies:** All previous PRs
+**Dependencies:** All previous PRs  
+**Status:** ✅ Completed
 
 ### Tasks
-- [ ] **13.1** Backend testing
+- [x] **13.1** Backend testing
   - Unit tests for key functions
   - API endpoint tests (pytest)
   - S3 upload test
   - Database operations test
   - AI service mocks
 
-- [ ] **13.2** Frontend testing
+- [x] **13.2** Frontend testing
   - Component rendering tests (Vitest)
   - API service tests
   - Form validation tests
   - User flow tests
 
-- [ ] **13.3** Integration testing
+- [x] **13.3** Integration testing
   - End-to-end upload flow
   - Preview generation
   - Approval workflow
   - Download functionality
 
-- [ ] **13.4** Performance testing
+- [x] **13.4** Performance testing
   - Measure proof generation time
   - Test with large images
   - Test concurrent requests
   - Identify bottlenecks
 
-- [ ] **13.5** Documentation
+- [x] **13.5** Documentation
   - API documentation (OpenAPI/Swagger)
   - README.md with setup instructions
   - Environment variables documentation
   - Deployment guide
   - User guide
 
-- [ ] **13.6** Deployment preparation
+- [x] **13.6** Deployment preparation
   - Production environment variables
   - Docker build optimization
   - Health check endpoints
   - Logging configuration
   - Monitoring setup (basic)
 
-- [ ] **13.7** Final deployment
+- [x] **13.7** Final deployment
   - Build Docker images
   - Deploy to AWS ECS/EC2
   - Configure S3 bucket
@@ -814,6 +828,26 @@ PR #1 (Setup)
                                                                 │
                                                                 ↓
                                                           PR #13 (Deploy)
+                                                                │
+                                                                ↓
+                                                          PR #14 (Feedback DB)
+                                                                │
+                                                                ↓
+                                                          PR #15 (Feedback API)
+                                                                │
+                                                                ↓
+                                                          PR #16 (Feedback UI)
+                                                                │
+                                                                ↓
+                                                          PR #17 (Campaign List)
+                                                                │
+                                                    ┌───────────┴───────────┐
+                                                    ↓                       ↓
+                                            PR #18 (Load Files)      PR #19 (Success Nav)
+                                                    │                       │
+                                                    └───────────┬───────────┘
+                                                                ↓
+                                                          PR #20 (Reject Confirm)
 ```
 
 ---
@@ -824,23 +858,313 @@ Use this to track actual time vs. estimates:
 
 | PR | Estimated | Actual | Delta | Notes |
 |----|-----------|--------|-------|-------|
-| #1 | 2h | | | |
-| #2 | 3h | | | |
-| #3 | 3h | | | |
-| #4 | 3h | | | |
-| #5 | 3h | | | |
-| #6 | 4h | | | |
-| #7 | 3h | | | |
-| #8 | 3h | | | |
-| #9 | 4h | | | |
-| #10| 3h | | | |
-| #11| 1h | | | |
-| #12| 3h | | | |
-| #13| 5h | | | |
-| **Total** | **36h** | | | |
+| #1 | 2h | | | ✅ Completed |
+| #2 | 3h | | | ✅ Completed |
+| #3 | 3h | | | ✅ Completed |
+| #4 | 3h | | | ✅ Completed |
+| #5 | 3h | | | ✅ Completed |
+| #6 | 4h | | | ✅ Completed |
+| #7 | 3h | | | ✅ Completed |
+| #8 | 3h | | | ✅ Completed |
+| #9 | 4h | | | ✅ Completed |
+| #10| 3h | | | ✅ Completed |
+| #11| 1h | | | ✅ Completed |
+| #12| 3h | | | ✅ Completed |
+| #13| 5h | | | ✅ Completed |
+| #14| 1h | | | ✅ Completed |
+| #15| 1h | | | ✅ Completed |
+| #16| 2h | | | ✅ Completed |
+| #17| 3h | | | ✅ Completed |
+| #18| 2h | | | ✅ Completed |
+| #19| 0.5h | | | ⏳ Proposed |
+| #20| 1h | | | ⏳ Proposed |
+| **Total** | **46.5h** | | | |
+
+---
+
+# PHASE 5: POST-MVP ENHANCEMENTS (Post-36h)
+
+## PR #14: Backend - Add Feedback Field to Database & Models
+**Branch:** `feature/feedback-database`  
+**Time Estimate:** 1 hour  
+**Dependencies:** PR #13  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **14.1** Add feedback column to database schema
+  - Update campaigns table creation
+  - Add migration function for existing databases
+  - Ensure column is nullable (TEXT)
+
+- [x] **14.2** Update Campaign model
+  - Add feedback field to __init__
+  - Update from_row() to read feedback
+  - Update to_dict() to include feedback
+  - Update save() to persist feedback
+
+- [x] **14.3** Update Pydantic schemas
+  - Add optional feedback field to ApprovalRequest (max 2000 chars)
+  - Add feedback field to ApprovalResponse
+  - Add feedback field to CampaignResponse
+
+**Acceptance Criteria:**
+- ✅ Database migration adds feedback column
+- ✅ Campaign model handles feedback field
+- ✅ Schemas validate feedback input/output
+- ✅ Existing campaigns work with null feedback
+
+**Files Modified:**
+- backend/app/database.py
+- backend/app/models/campaign.py
+- backend/app/models/schemas.py
+
+---
+
+## PR #15: Backend - Update Approval Route to Store Feedback
+**Branch:** `feature/approval-feedback`  
+**Time Estimate:** 1 hour  
+**Dependencies:** PR #14  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **15.1** Update approval endpoint
+  - Accept feedback in ApprovalRequest
+  - Store feedback for approve decisions
+  - Store feedback for reject decisions
+  - Update campaign record with feedback
+
+- [x] **15.2** Include feedback in responses
+  - Return feedback in ApprovalResponse
+  - Log feedback (truncated for privacy)
+  - Update proof service to include feedback in metadata
+
+**Acceptance Criteria:**
+- ✅ Approval endpoint accepts feedback parameter
+- ✅ Feedback stored in database for both approve/reject
+- ✅ Feedback returned in API response
+- ✅ Feedback included in preview metadata
+
+**Files Modified:**
+- backend/app/routes/approve.py
+- backend/app/services/proof_service.py
+
+---
+
+## PR #16: Frontend - Add Feedback UI & Display
+**Branch:** `feature/feedback-ui`  
+**Time Estimate:** 2 hours  
+**Dependencies:** PR #15  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **16.1** Update API service
+  - Add feedback parameter to approveCampaign()
+  - Send feedback in request body
+
+- [x] **16.2** Update ApprovalButtons component
+  - Add collapsible feedback textarea
+  - Add character counter (2000 max)
+  - Show feedback in confirmation dialog
+  - Make feedback optional
+
+- [x] **16.3** Update CampaignDetails component
+  - Display feedback when available
+  - Style feedback section appropriately
+  - Preserve line breaks in feedback
+
+**Acceptance Criteria:**
+- ✅ Users can add feedback when approving/rejecting
+- ✅ Feedback is optional (can be empty)
+- ✅ Character limit enforced (2000 chars)
+- ✅ Feedback displays in campaign details
+- ✅ Feedback persists in database
+
+**Files Modified:**
+- frontend/src/services/api.js
+- frontend/src/components/ApprovalButtons.jsx
+- frontend/src/components/CampaignDetails.jsx
+
+---
+
+## PR #17: Backend & Frontend - Campaign List & Management
+**Branch:** `feature/campaign-list`  
+**Time Estimate:** 3 hours  
+**Dependencies:** PR #16  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **17.1** Backend: List campaigns endpoint
+  - GET /api/v1/campaigns
+  - Support pagination (limit, offset)
+  - Support status filtering
+  - Return list of CampaignResponse objects
+
+- [x] **17.2** Backend: Campaign detail endpoint
+  - GET /api/v1/campaigns/{campaign_id}
+  - Return full campaign details including feedback
+  - Use existing get_campaign service
+
+- [x] **17.3** Backend: Reset rejected campaign endpoint
+  - POST /api/v1/campaigns/{campaign_id}/reset
+  - Reset rejected campaigns to 'uploaded' status
+  - Clear feedback (optional)
+  - Allow resubmission
+
+- [x] **17.4** Frontend: Campaigns list page
+  - Create CampaignsListPage component
+  - Display table of all campaigns
+  - Show status, created date, feedback preview
+  - Add status filter dropdown
+  - Add navigation to view/edit campaigns
+
+- [x] **17.5** Frontend: API service methods
+  - Add listCampaigns() method
+  - Add getCampaignDetail() method
+  - Add resetCampaign() method (optional)
+
+- [x] **17.6** Frontend: Navigation updates
+  - Add route for /campaigns
+  - Add "View All Campaigns" link in header
+  - Update routing in App.jsx
+
+- [x] **17.7** Frontend: Edit rejected campaigns
+  - Pre-fill upload form with existing campaign data
+  - Allow modification and resubmission
+  - Handle reset status flow
+
+**Acceptance Criteria:**
+- ✅ List campaigns endpoint returns all campaigns
+- ✅ Status filtering works correctly
+- ✅ Campaign detail endpoint returns full data
+- ✅ Campaigns list page displays all campaigns
+- ✅ Users can view feedback on campaigns
+- ✅ Rejected campaigns can be reset and edited
+- ✅ Navigation between pages works smoothly
+
+**Files Created:**
+- frontend/src/pages/CampaignsListPage.jsx
+
+**Files Modified:**
+- backend/app/routes/campaign.py
+- frontend/src/services/api.js
+- frontend/src/App.jsx
+- frontend/src/components/Header.jsx (if exists)
+- frontend/src/pages/UploadPage.jsx (for editing)
+
+---
+
+## PR #18: Frontend - Load and Display Existing Campaign Files When Editing
+**Branch:** `feature/load-existing-files`  
+**Time Estimate:** 2 hours  
+**Dependencies:** PR #17  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **18.1** Backend: Include file metadata in campaign detail response
+  - Add `ai_processing_data` field to CampaignResponse schema (optional)
+  - Update campaign detail endpoint to include `ai_processing_data`
+  - Include logo and hero_images metadata with S3 URLs
+  - Convert S3 URLs to presigned URLs for frontend access
+
+- [x] **18.2** Frontend: Fetch and display existing files
+  - When editing a campaign, fetch file URLs from campaign data
+  - Download files from presigned URLs and convert to File objects
+  - Display existing files in FileUpload components as if they were just uploaded
+  - Show file previews for existing files
+
+- [x] **18.3** Frontend: Pre-fill all form fields
+  - Load content fields from `ai_processing_data.content`
+  - Pre-fill subject_line, preview_text, body_copy, cta_text, cta_url, footer_text
+  - Remove the "existing files" notice since files are now displayed
+
+- [x] **18.4** Frontend: Handle file replacement
+  - Allow users to replace existing files by uploading new ones
+  - If no new files uploaded, keep existing files (loaded as File objects)
+  - Update form validation to work with loaded existing files
+
+- [x] **18.5** Backend: Update existing campaigns instead of creating new ones
+  - Add optional `campaign_id` parameter to upload route
+  - When `campaign_id` is provided and campaign is rejected, update existing campaign
+  - Reset status to 'uploaded' and clear old proof/HTML paths when resubmitting
+  - Pass `campaign_id` from frontend when editing
+
+- [x] **18.6** Backend: Save campaign metadata changes when updating
+  - Update `update_campaign_assets()` to accept and save `campaign_name` and `advertiser_name`
+  - Ensure all modified campaign data is persisted when resubmitting
+
+**Acceptance Criteria:**
+- ✅ Campaign detail endpoint includes file metadata
+- ✅ Existing files are displayed in upload form when editing
+- ✅ All form fields (including content) are pre-filled from campaign data
+- ✅ Users can see existing files and optionally replace them
+- ✅ Form works seamlessly whether creating new or editing existing campaign
+- ✅ Editing a rejected campaign updates the existing campaign (doesn't create duplicate)
+- ✅ Campaign metadata changes (name, advertiser) are saved when resubmitting
+- ✅ Status updates correctly after approval (shows 'approved' not 'rejected')
+
+**Files Created:**
+- frontend/src/utils/fileHelpers.js
+
+**Files Modified:**
+- backend/app/models/schemas.py
+- backend/app/routes/campaign.py
+- backend/app/routes/upload.py
+- backend/app/services/campaign_service.py
+- frontend/src/pages/UploadPage.jsx
+
+---
+
+## PR #19: Frontend - Add "View All Campaigns" Button to Success Page
+**Branch:** `feature/success-page-navigation`  
+**Time Estimate:** 30 minutes  
+**Dependencies:** PR #17  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **19.1** Frontend: Add "View All Campaigns" button
+  - Add button to SuccessPage component
+  - Place alongside "View Preview Again" and "Create New Campaign"
+  - Navigate to `/campaigns` route
+
+**Acceptance Criteria:**
+- ✅ Success page displays "View All Campaigns" button
+- ✅ Button navigates to campaigns list page
+- ✅ Button is styled consistently with other navigation buttons
+
+**Files Modified:**
+- frontend/src/pages/SuccessPage.jsx
+
+---
+
+## PR #20: Frontend - Add Rejection Confirmation Dialog & Update Navigation
+**Branch:** `feature/rejection-confirmation`  
+**Time Estimate:** 1 hour  
+**Dependencies:** PR #17  
+**Status:** ✅ Completed
+
+### Tasks
+- [x] **20.1** Frontend: Add confirmation dialog for rejection
+  - Add `showRejectConfirm` state to ApprovalButtons component
+  - Show confirmation dialog before rejecting (similar to approval flow)
+  - Display feedback in confirmation if provided
+  - Require user confirmation before proceeding with rejection
+
+- [x] **20.2** Frontend: Update rejection navigation
+  - Change navigation destination from `/` to `/campaigns` after rejection
+  - Remove state message about editing (no longer needed)
+  - Navigate to campaigns list page after successful rejection
+
+**Acceptance Criteria:**
+- ✅ Rejection requires confirmation dialog (like approval)
+- ✅ Confirmation shows feedback if provided
+- ✅ After rejection, user is navigated to campaigns list page
+- ✅ User can see rejected campaign in the list with feedback
+
+**Files Modified:**
+- frontend/src/components/ApprovalButtons.jsx
 
 ---
 
 **Document Status:** Ready for development  
-**Last Updated:** November 11, 2025  
-**Version:** 1.0
+**Last Updated:** November 2025  
+**Version:** 1.2

@@ -66,9 +66,13 @@ class Database:
                     html_s3_path TEXT,
                     proof_s3_path TEXT,
                     ai_processing_data TEXT,
-                    updated_at TEXT
+                    updated_at TEXT,
+                    feedback TEXT
                 )
             """)
+            
+            # Migrate existing tables to add feedback column if it doesn't exist
+            await self.migrate_add_feedback_column(cursor)
             
             # Create indexes
             await cursor.execute("""
@@ -83,6 +87,23 @@ class Database:
             
             await self.conn.commit()
             logger.info("Database tables and indexes created")
+    
+    async def migrate_add_feedback_column(self, cursor):
+        """Add feedback column to existing campaigns table if it doesn't exist"""
+        try:
+            # Check if feedback column exists
+            await cursor.execute("PRAGMA table_info(campaigns)")
+            columns = await cursor.fetchall()
+            column_names = [col[1] for col in columns]
+            
+            if 'feedback' not in column_names:
+                logger.info("Adding feedback column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN feedback TEXT
+                """)
+                logger.info("Feedback column added successfully")
+        except Exception as e:
+            logger.warning(f"Could not add feedback column (may already exist): {e}")
 
 
 # Global database instance

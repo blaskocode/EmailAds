@@ -76,39 +76,53 @@ async def approve_campaign(
                 expiration=86400  # 24 hours
             )
             
-            # Update campaign status
+            # Update campaign status and feedback
             campaign.status = 'approved'
             campaign.approved_at = datetime.utcnow().isoformat()
             campaign.html_s3_path = final_html_s3_url
+            campaign.feedback = request.feedback
             
             await campaign.update(
                 conn,
                 status='approved',
                 approved_at=campaign.approved_at,
-                html_s3_path=final_html_s3_url
+                html_s3_path=final_html_s3_url,
+                feedback=request.feedback
             )
             
             logger.info(f"Campaign {campaign_id} approved. Final HTML stored at: {final_html_s3_url}")
+            if request.feedback:
+                logger.info(f"Feedback provided: {request.feedback[:100]}...")
             
             return ApprovalResponse(
                 campaign_id=campaign_id,
                 status='approved',
                 download_url=download_url,
-                message="Campaign approved successfully. Final HTML is ready for download."
+                message="Campaign approved successfully. Final HTML is ready for download.",
+                feedback=request.feedback
             )
         
         elif request.decision == 'reject':
-            # Update campaign status to rejected
+            # Update campaign status to rejected and store feedback
             campaign.status = 'rejected'
-            await campaign.update(conn, status='rejected')
+            campaign.feedback = request.feedback
+            
+            await campaign.update(
+                conn,
+                status='rejected',
+                feedback=request.feedback
+            )
             
             logger.info(f"Campaign {campaign_id} rejected")
+            if request.feedback:
+                logger.info(f"Rejection feedback: {request.feedback[:100]}...")
             
             return ApprovalResponse(
                 campaign_id=campaign_id,
                 status='rejected',
                 download_url=None,
-                message="Campaign rejected. You can edit and resubmit."
+                message="Campaign rejected. You can edit and resubmit.",
+                feedback=request.feedback
             )
         
         else:

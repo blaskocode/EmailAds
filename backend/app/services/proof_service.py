@@ -172,7 +172,8 @@ async def generate_proof(
                 'subject_line': primary_subject,
                 'preview_text': preview_text,
                 'generated_at': datetime.utcnow().isoformat(),
-                'proof_s3_url': proof_s3_url
+                'proof_s3_url': proof_s3_url,
+                'feedback': campaign_obj.feedback
             }
         }
         

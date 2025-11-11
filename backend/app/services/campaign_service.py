@@ -83,15 +83,19 @@ async def update_campaign_assets(
     campaign_id: str,
     assets_s3_path: str,
     asset_metadata: Optional[Dict[str, Any]] = None,
+    campaign_name: Optional[str] = None,
+    advertiser_name: Optional[str] = None,
     conn=None
 ) -> Optional[Campaign]:
     """
-    Update campaign assets S3 path
+    Update campaign assets S3 path and optionally update campaign metadata
     
     Args:
         campaign_id: Campaign ID
         assets_s3_path: S3 path to assets
         asset_metadata: Additional asset metadata
+        campaign_name: Optional campaign name to update
+        advertiser_name: Optional advertiser name to update
         conn: Database connection (optional, will use db.conn if not provided)
         
     Returns:
@@ -107,12 +111,24 @@ async def update_campaign_assets(
             await db.connect()
         conn = db.conn
     
-    await campaign.update(
-        conn,
-        assets_s3_path=assets_s3_path,
-        ai_processing_data=asset_metadata or {},
-        status='uploaded'
-    )
+    # Build update dict with all fields to update
+    update_fields = {
+        'assets_s3_path': assets_s3_path,
+        'ai_processing_data': asset_metadata or {},
+        'status': 'uploaded',
+        'proof_s3_path': None,  # Clear old proof
+        'html_s3_path': None,   # Clear old HTML
+        'approved_at': None     # Clear approval timestamp
+    }
+    
+    # Add campaign name and advertiser name if provided
+    if campaign_name is not None:
+        update_fields['campaign_name'] = campaign_name
+    if advertiser_name is not None:
+        update_fields['advertiser_name'] = advertiser_name
+    
+    # When resubmitting, clear old proof and HTML paths, and reset status
+    await campaign.update(conn, **update_fields)
     
     logger.info(f"Updated campaign assets: {campaign_id}")
     return campaign

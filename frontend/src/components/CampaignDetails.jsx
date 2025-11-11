@@ -53,6 +53,17 @@ function CampaignDetails({ metadata, aiSuggestions }) {
               </p>
             </div>
           )}
+
+          {metadata.feedback && (
+            <div className="pt-4 border-t">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Feedback
+              </label>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{metadata.feedback}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

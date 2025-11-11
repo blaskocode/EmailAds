@@ -5,6 +5,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import UploadPage from './pages/UploadPage';
 import PreviewPage from './pages/PreviewPage';
 import SuccessPage from './pages/SuccessPage';
+import CampaignsListPage from './pages/CampaignsListPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/" element={<UploadPage />} />
+              <Route path="/campaigns" element={<CampaignsListPage />} />
               <Route path="/preview/:campaignId" element={<PreviewPage />} />
               <Route path="/success/:campaignId" element={<SuccessPage />} />
             </Routes>
