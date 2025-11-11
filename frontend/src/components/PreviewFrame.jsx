@@ -43,7 +43,7 @@ function PreviewFrame({ html, width = '600px', title = 'Email Preview' }) {
             minHeight: '600px',
             display: 'block'
           }}
-          sandbox="allow-same-origin"
+          sandbox="allow-same-origin allow-scripts"
         />
       </div>
     </div>

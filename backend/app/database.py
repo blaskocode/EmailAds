@@ -30,9 +30,18 @@ class Database:
     
     async def close(self):
         """Close database connection"""
-        if hasattr(self, 'conn'):
-            await self.conn.close()
-            logger.info("Database connection closed")
+        if hasattr(self, 'conn') and self.conn is not None:
+            try:
+                await self.conn.close()
+                logger.info("Database connection closed")
+            except ValueError as e:
+                # Connection was already closed - this is fine during shutdown
+                logger.debug(f"Database connection already closed: {e}")
+            except Exception as e:
+                logger.warning(f"Error closing database connection: {e}")
+            finally:
+                # Clear the connection reference
+                self.conn = None
     
     async def init_db(self):
         """Initialize database schema and keep connection open"""

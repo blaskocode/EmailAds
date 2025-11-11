@@ -110,7 +110,8 @@ async def update_campaign_assets(
     await campaign.update(
         conn,
         assets_s3_path=assets_s3_path,
-        ai_processing_data=asset_metadata or {}
+        ai_processing_data=asset_metadata or {},
+        status='uploaded'
     )
     
     logger.info(f"Updated campaign assets: {campaign_id}")
