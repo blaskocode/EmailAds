@@ -119,7 +119,32 @@
 
 ## Next Steps
 
-### Immediate (Ready Now)
+### Immediate (P1 Features - Planned)
+1. **PR #21: Edit & Regenerate Feature** ⏳ Proposed
+   - Allow inline text editing in preview
+   - Replace individual images without full re-upload
+   - Instant preview regeneration (<2 sec)
+   - Time estimate: 4 hours
+
+2. **PR #22: Campaign History Enhancement** ⏳ Proposed
+   - Show last 10 campaigns by default
+   - Quick actions (re-download, view preview)
+   - Enhanced history view
+   - Time estimate: 2 hours
+
+3. **PR #23: Campaign Scheduling System** ⏳ Proposed
+   - Schedule approved campaigns for future
+   - Background job processor
+   - Scheduling UI with date/time picker
+   - Time estimate: 5 hours
+
+4. **PR #24: Editorial Review Interface** ⏳ Proposed
+   - Dedicated review page for campaign managers
+   - Review status tracking
+   - Content editing during review
+   - Time estimate: 4 hours
+
+### Short Term
 1. **Deploy to Production**
    - Follow PRODUCTION_READINESS.md checklist
    - Use DEPLOYMENT_QUICKSTART.md guide
@@ -130,18 +155,17 @@
    - Track performance metrics
    - Monitor error rates
 
-### Short Term
-1. **Increase Test Coverage**
+3. **Increase Test Coverage**
    - Add more backend unit tests
    - Add more frontend component tests
    - Add integration tests
 
-2. **Performance Tuning**
+4. **Performance Tuning**
    - Monitor actual performance vs. targets
    - Optimize slow operations
    - Add caching where beneficial
 
-3. **User Testing**
+5. **User Testing**
    - Gather feedback on UX
    - Identify pain points
    - Iterate on workflow
@@ -290,5 +314,12 @@
 - Added automatic processing
 - Created memory bank structure
 
-**Status:** PR #20 completed. Rejection now requires confirmation dialog and navigates to campaigns list. All planned PRs completed!
+**Status:** PR #20 completed. Rejection now requires confirmation dialog and navigates to campaigns list. All MVP and Post-MVP PRs completed! 
+
+**New:** Added 4 P1 feature PRs (#21-24) to TASK_BREAKDOWN.md:
+- PR #21: Edit & Regenerate Feature (4h)
+- PR #22: Campaign History Enhancement (2h)
+- PR #23: Campaign Scheduling System (5h)
+- PR #24: Editorial Review Interface (4h)
+Total: 15 hours of new P1 features planned.
 

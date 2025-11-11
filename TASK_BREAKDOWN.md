@@ -13,8 +13,9 @@ Phase 1: Foundation (0-8h)     → 3 PRs
 Phase 2: Core Features (8-20h) → 5 PRs  
 Phase 3: UI & Approval (20-28h)→ 3 PRs
 Phase 4: Polish (28-36h)       → 2 PRs
-Phase 5: Post-MVP (36h+)        → 4 PRs
-                        TOTAL: 17 PRs
+Phase 5: Post-MVP (36h+)        → 7 PRs
+Phase 6: P1 Features            → 4 PRs
+                        TOTAL: 24 PRs
 ```
 
 ---
@@ -848,6 +849,17 @@ PR #1 (Setup)
                                                     └───────────┬───────────┘
                                                                 ↓
                                                           PR #20 (Reject Confirm)
+                                                                │
+                                                    ┌───────────┴───────────┐
+                                                    ↓                       ↓
+                                            PR #21 (Edit/Regen)      PR #22 (History)
+                                                    │                       │
+                                                    └───────────┬───────────┘
+                                                                ↓
+                                                          PR #24 (Review)
+                                                    │
+                                                    ↓
+                                            PR #23 (Scheduling)
 ```
 
 ---
@@ -876,9 +888,13 @@ Use this to track actual time vs. estimates:
 | #16| 2h | | | ✅ Completed |
 | #17| 3h | | | ✅ Completed |
 | #18| 2h | | | ✅ Completed |
-| #19| 0.5h | | | ⏳ Proposed |
-| #20| 1h | | | ⏳ Proposed |
-| **Total** | **46.5h** | | | |
+| #19| 0.5h | | | ✅ Completed |
+| #20| 1h | | | ✅ Completed |
+| #21| 4h | | | ⏳ Proposed |
+| #22| 2h | | | ⏳ Proposed |
+| #23| 5h | | | ⏳ Proposed |
+| #24| 4h | | | ⏳ Proposed |
+| **Total** | **62.5h** | | | |
 
 ---
 
@@ -1165,6 +1181,227 @@ Use this to track actual time vs. estimates:
 
 ---
 
+# PHASE 6: P1 FEATURES (Should-Have)
+
+## PR #21: Edit & Regenerate Feature
+**Branch:** `feature/edit-regenerate`  
+**Time Estimate:** 4 hours  
+**Dependencies:** PR #9, PR #8  
+**Status:** ⏳ Proposed
+
+### Tasks
+- [ ] **21.1** Backend: Add edit endpoint
+  - POST /api/v1/campaigns/{campaign_id}/edit
+  - Accept partial updates (text fields only)
+  - Validate edited content
+  - Update campaign data without re-processing images
+
+- [ ] **21.2** Backend: Add image replacement endpoint
+  - POST /api/v1/campaigns/{campaign_id}/replace-image
+  - Accept image type (logo or hero_image_index)
+  - Upload new image to S3
+  - Update campaign metadata
+  - Keep other images unchanged
+
+- [ ] **21.3** Backend: Regenerate proof endpoint
+  - POST /api/v1/campaigns/{campaign_id}/regenerate
+  - Use updated campaign data
+  - Regenerate HTML proof with new content/images
+  - Update preview in <2 seconds
+
+- [ ] **21.4** Frontend: Inline text editing UI
+  - Make text fields editable in preview page
+  - Add "Edit" mode toggle
+  - Show save/cancel buttons
+  - Real-time validation
+
+- [ ] **21.5** Frontend: Image replacement UI
+  - Add "Replace Image" button on each image
+  - File upload dialog for replacement
+  - Show loading state during replacement
+  - Update preview immediately after replacement
+
+- [ ] **21.6** Frontend: Instant regeneration
+  - "Regenerate Preview" button
+  - Show loading spinner (<2 sec)
+  - Update preview without page reload
+  - Success/error notifications
+
+**Acceptance Criteria:**
+- ✅ Users can edit text fields inline in preview
+- ✅ Users can replace individual images without full re-upload
+- ✅ Preview regenerates in <2 seconds
+- ✅ Changes persist in database
+- ✅ No need to re-upload all assets
+
+**Files Created:**
+- backend/app/routes/edit.py
+
+**Files Modified:**
+- backend/app/routes/generate.py (add regenerate endpoint)
+- backend/app/services/campaign_service.py
+- frontend/src/pages/PreviewPage.jsx
+- frontend/src/components/CampaignDetails.jsx
+- frontend/src/services/api.js
+
+---
+
+## PR #22: Campaign History Enhancement
+**Branch:** `feature/campaign-history`  
+**Time Estimate:** 2 hours  
+**Dependencies:** PR #17  
+**Status:** ⏳ Proposed
+
+### Tasks
+- [ ] **22.1** Backend: Enhance campaigns list endpoint
+  - Add "last 10" filter option
+  - Add sorting by created_at (newest first)
+  - Include quick stats (total campaigns, by status)
+
+- [ ] **22.2** Frontend: Campaign history view
+  - Show last 10 campaigns by default
+  - Display campaign name, timestamp, status prominently
+  - Add "View All" link to see full list
+  - Compact card layout for history view
+
+- [ ] **22.3** Frontend: Quick actions in history
+  - "Re-download HTML" button for approved campaigns
+  - "View Preview" button for all campaigns
+  - "Edit" button for rejected campaigns
+  - Status badges (approved/rejected/ready)
+
+- [ ] **22.4** Frontend: History page route
+  - Add /history route
+  - Link from header navigation
+  - Show as default view or separate page
+
+**Acceptance Criteria:**
+- ✅ History shows last 10 campaigns
+- ✅ Metadata displays correctly (name, timestamp, status)
+- ✅ Quick actions work (re-download, view preview)
+- ✅ History page is easily accessible
+- ✅ Integrates with existing campaign list
+
+**Files Modified:**
+- backend/app/routes/campaign.py
+- frontend/src/pages/CampaignsListPage.jsx (or create HistoryPage.jsx)
+- frontend/src/App.jsx
+- frontend/src/components/Header.jsx
+- frontend/src/services/api.js
+
+---
+
+## PR #23: Campaign Scheduling System
+**Branch:** `feature/campaign-scheduling`  
+**Time Estimate:** 5 hours  
+**Dependencies:** PR #17  
+**Status:** ⏳ Proposed
+
+### Tasks
+- [ ] **23.1** Backend: Add scheduling fields to database
+  - Add `scheduled_at` datetime field to campaigns table
+  - Add `scheduling_status` field (pending/scheduled/sent)
+  - Migration script for existing campaigns
+
+- [ ] **23.2** Backend: Scheduling endpoint
+  - POST /api/v1/campaigns/{campaign_id}/schedule
+  - Accept scheduled_at datetime
+  - Validate future dates only
+  - Update campaign scheduling status
+
+- [ ] **23.3** Backend: Scheduled job processor (basic)
+  - Background task to check scheduled campaigns
+  - Mark campaigns as "sent" when scheduled time arrives
+  - Log scheduling events
+  - Note: Actual email sending out of scope (just status update)
+
+- [ ] **23.4** Frontend: Scheduling UI
+  - Add "Schedule Campaign" button on approved campaigns
+  - Date/time picker component
+  - Show scheduled campaigns in list with badge
+  - Display scheduled date/time
+
+- [ ] **23.5** Frontend: Scheduled campaigns view
+  - Filter for scheduled campaigns
+  - Show countdown to scheduled time
+  - Allow canceling scheduled campaigns
+
+**Acceptance Criteria:**
+- ✅ Users can schedule approved campaigns
+- ✅ Scheduled date/time is validated (future only)
+- ✅ Scheduled campaigns show in list with status
+- ✅ Background processor updates status at scheduled time
+- ✅ Users can cancel scheduled campaigns
+
+**Files Created:**
+- backend/app/services/scheduler_service.py
+- backend/app/routes/schedule.py
+
+**Files Modified:**
+- backend/app/database.py
+- backend/app/models/campaign.py
+- backend/app/models/schemas.py
+- frontend/src/pages/CampaignsListPage.jsx
+- frontend/src/services/api.js
+
+---
+
+## PR #24: Editorial Review Interface
+**Branch:** `feature/editorial-review`  
+**Time Estimate:** 4 hours  
+**Dependencies:** PR #9, PR #21  
+**Status:** ⏳ Proposed
+
+### Tasks
+- [ ] **24.1** Backend: Review status tracking
+  - Add `review_status` field (pending/reviewed/approved/rejected)
+  - Add `reviewer_notes` field (optional text)
+  - Update approval workflow to include review step
+
+- [ ] **24.2** Backend: Review endpoints
+  - POST /api/v1/campaigns/{campaign_id}/review
+  - Accept review decision and notes
+  - Update review status
+  - Separate from advertiser approval
+
+- [ ] **24.3** Frontend: Review interface
+  - Dedicated review page for campaign managers
+  - Side-by-side content review
+  - Highlight editable sections
+  - Add reviewer notes section
+
+- [ ] **24.4** Frontend: Review workflow UI
+  - "Mark as Reviewed" button
+  - Notes textarea for reviewer comments
+  - Status indicators (pending review, reviewed, etc.)
+  - Filter campaigns by review status
+
+- [ ] **24.5** Frontend: Content editing in review
+  - Allow editing content during review
+  - Save review edits
+  - Show diff/changes made during review
+
+**Acceptance Criteria:**
+- ✅ Review interface is user-friendly
+- ✅ Reviewers can add notes and make edits
+- ✅ Review status is tracked separately from approval
+- ✅ Campaigns can be filtered by review status
+- ✅ Review workflow integrates with existing approval flow
+
+**Files Created:**
+- frontend/src/pages/ReviewPage.jsx
+- backend/app/routes/review.py
+
+**Files Modified:**
+- backend/app/database.py
+- backend/app/models/campaign.py
+- backend/app/models/schemas.py
+- backend/app/routes/approve.py
+- frontend/src/pages/CampaignsListPage.jsx
+- frontend/src/services/api.js
+
+---
+
 **Document Status:** Ready for development  
 **Last Updated:** November 2025  
-**Version:** 1.2
+**Version:** 1.3
