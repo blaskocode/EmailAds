@@ -6,6 +6,8 @@ import UploadPage from './pages/UploadPage';
 import PreviewPage from './pages/PreviewPage';
 import SuccessPage from './pages/SuccessPage';
 import CampaignsListPage from './pages/CampaignsListPage';
+import HistoryPage from './pages/HistoryPage';
+import ReviewPage from './pages/ReviewPage';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
             <Routes>
               <Route path="/" element={<UploadPage />} />
               <Route path="/campaigns" element={<CampaignsListPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/review/:campaignId" element={<ReviewPage />} />
               <Route path="/preview/:campaignId" element={<PreviewPage />} />
               <Route path="/success/:campaignId" element={<SuccessPage />} />
             </Routes>

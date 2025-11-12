@@ -24,20 +24,32 @@ router = APIRouter()
 @router.get("/campaigns", response_model=CampaignListResponse)
 async def list_campaigns(
     status: Optional[str] = Query(None, description="Filter by status (draft, uploaded, processed, ready, approved, rejected)"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of campaigns to return"),
+    limit: Optional[int] = Query(None, ge=1, le=1000, description="Maximum number of campaigns to return"),
     offset: int = Query(0, ge=0, description="Number of campaigns to skip"),
+    last_n: Optional[int] = Query(None, ge=1, le=100, description="Get last N campaigns (overrides limit and offset)"),
+    include_stats: bool = Query(False, description="Include quick stats by status"),
     conn = Depends(get_db)
 ):
     """
     List all campaigns with optional status filtering and pagination
     
     Returns:
-    - campaigns: List of campaign objects
+    - campaigns: List of campaign objects (sorted by created_at DESC, newest first)
     - total: Total number of campaigns (before pagination)
     - limit: Number of campaigns per page
     - offset: Number of campaigns skipped
+    - stats: Optional quick stats by status (if include_stats=true)
     """
     try:
+        # Handle "last N" filter (for history view)
+        if last_n:
+            limit = last_n
+            offset = 0
+        
+        # Default limit if not specified
+        if limit is None:
+            limit = 100
+        
         # Get campaigns based on status filter
         if status:
             campaigns = await Campaign.get_by_status(conn, status, limit=limit, offset=offset)
@@ -56,6 +68,18 @@ async def list_campaigns(
                 result = await cursor.fetchone()
                 total = result['total'] if result else 0
         
+        # Get quick stats if requested
+        stats = None
+        if include_stats:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    SELECT status, COUNT(*) as count 
+                    FROM campaigns 
+                    GROUP BY status
+                """)
+                rows = await cursor.fetchall()
+                stats = {row['status']: row['count'] for row in rows}
+        
         # Convert to response format
         campaign_responses = [
             CampaignResponse(
@@ -69,7 +93,11 @@ async def list_campaigns(
                 html_s3_path=c.html_s3_path,
                 proof_s3_path=c.proof_s3_path,
                 feedback=c.feedback,
-                ai_processing_data=c.ai_processing_data
+                ai_processing_data=c.ai_processing_data,
+                scheduled_at=c.scheduled_at,
+                scheduling_status=c.scheduling_status,
+                review_status=c.review_status,
+                reviewer_notes=c.reviewer_notes
             )
             for c in campaigns
         ]
@@ -78,7 +106,8 @@ async def list_campaigns(
             campaigns=campaign_responses,
             total=total,
             limit=limit,
-            offset=offset
+            offset=offset,
+            stats=stats
         )
         
     except Exception as e:
@@ -165,7 +194,11 @@ async def get_campaign_detail(
             html_s3_path=campaign.html_s3_path,
             proof_s3_path=campaign.proof_s3_path,
             feedback=campaign.feedback,
-            ai_processing_data=ai_data_with_presigned
+            ai_processing_data=ai_data_with_presigned,
+            scheduled_at=campaign.scheduled_at,
+            scheduling_status=campaign.scheduling_status,
+            review_status=campaign.review_status,
+            reviewer_notes=campaign.reviewer_notes
         )
         
     except HTTPException:
@@ -262,7 +295,11 @@ async def reset_campaign(
             html_s3_path=campaign.html_s3_path,
             proof_s3_path=campaign.proof_s3_path,
             feedback=campaign.feedback,
-            ai_processing_data=campaign.ai_processing_data
+            ai_processing_data=campaign.ai_processing_data,
+            scheduled_at=campaign.scheduled_at,
+            scheduling_status=campaign.scheduling_status,
+            review_status=campaign.review_status,
+            reviewer_notes=campaign.reviewer_notes
         )
         
     except HTTPException:

@@ -113,7 +113,7 @@ cat > /tmp/lifecycle-policy.json << EOF
 {
   "Rules": [
     {
-      "Id": "DeleteOldAssets",
+      "ID": "DeleteOldAssets",
       "Status": "Enabled",
       "Prefix": "",
       "Expiration": {

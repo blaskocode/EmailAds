@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from app.config import settings
 from app.database import db
 from app.services.s3_service import s3_service
+from app.services.scheduler_service import scheduler_service
 from app.utils.error_handlers import (
     http_exception_handler,
     validation_exception_handler,
@@ -48,6 +49,9 @@ async def lifespan(app: FastAPI):
             logger.info("S3 connection verified")
         else:
             logger.warning("S3 connection test failed - check credentials and bucket name")
+        
+        # Start scheduler service
+        await scheduler_service.start()
     except Exception as e:
         logger.error(f"Error during startup: {e}")
     
@@ -55,6 +59,7 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down HiBid Email MVP API...")
+    await scheduler_service.stop()
     await db.close()
 
 
@@ -84,7 +89,7 @@ app.add_middleware(
 )
 
 # Include API routers
-from app.routes import upload, process, generate, preview, approve, download, campaign
+from app.routes import upload, process, generate, preview, approve, download, campaign, edit, schedule, review
 app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
 app.include_router(process.router, prefix="/api/v1", tags=["process"])
 app.include_router(generate.router, prefix="/api/v1", tags=["generate"])
@@ -92,6 +97,9 @@ app.include_router(preview.router, prefix="/api/v1", tags=["preview"])
 app.include_router(approve.router, prefix="/api/v1", tags=["approve"])
 app.include_router(download.router, prefix="/api/v1", tags=["download"])
 app.include_router(campaign.router, prefix="/api/v1", tags=["campaign"])
+app.include_router(edit.router, prefix="/api/v1", tags=["edit"])
+app.include_router(schedule.router, prefix="/api/v1", tags=["schedule"])
+app.include_router(review.router, prefix="/api/v1", tags=["review"])
 
 
 @app.get("/health")

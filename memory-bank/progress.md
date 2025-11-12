@@ -1,14 +1,14 @@
 # Progress: HiBid Email MVP
 
-**Last Updated:** November 2025  
-**Overall Status:** ✅ MVP Complete - Production Ready
+**Last Updated:** November 12, 2025  
+**Overall Status:** ✅ MVP Complete - Production Deployed ✅
 
 ---
 
 ## Completion Status
 
 ### MVP & Post-MVP: 20 PRs Completed ✅ (13 MVP + 7 Post-MVP)
-### P1 Features: 4 PRs Proposed ⏳ (PRs #21-24)
+### P1 Features: 1 PR Completed ✅, 3 PRs Proposed ⏳ (PR #21 ✅, PRs #22-24 ⏳)
 
 **Phase 1: Foundation (0-8h)** ✅
 - ✅ PR #1: Project setup & infrastructure
@@ -40,11 +40,11 @@
 - ✅ PR #19: Frontend - Add "View All Campaigns" button to success page
 - ✅ PR #20: Frontend - Add rejection confirmation dialog & update navigation
 
-**Phase 6: P1 Features (Should-Have)** ⏳
-- ⏳ PR #21: Edit & Regenerate Feature (4h)
-- ⏳ PR #22: Campaign History Enhancement (2h)
-- ⏳ PR #23: Campaign Scheduling System (5h)
-- ⏳ PR #24: Editorial Review Interface (4h)
+**Phase 6: P1 Features (Should-Have)** ✅
+- ✅ PR #21: Edit & Regenerate Feature (4h) - Completed
+- ✅ PR #22: Campaign History Enhancement (2h) - Completed
+- ✅ PR #23: Campaign Scheduling System (5h) - Completed
+- ✅ PR #24: Editorial Review Interface (4h) - Completed
 
 ---
 
@@ -102,6 +102,16 @@
    - ✅ Pre-fill form data from existing campaigns
    - ✅ Update existing campaigns when resubmitting (no duplicates)
    - ✅ Save all metadata changes (name, advertiser, content) when editing
+   - ✅ Campaign history page with last 10 campaigns
+   - ✅ Quick actions: re-download, view preview, edit
+   - ✅ Campaign scheduling for future sending
+   - ✅ Background scheduler service (checks every 60 seconds)
+   - ✅ Scheduled campaigns with countdown timer
+   - ✅ Cancel scheduled campaigns
+   - ✅ Editorial review interface for campaign managers
+   - ✅ Review status tracking (separate from approval)
+   - ✅ Reviewer notes and content editing during review
+   - ✅ Review status badges and filtering
 
 ### Infrastructure ✅
 - ✅ Docker configuration
@@ -137,11 +147,11 @@
 - ⚠️ Set up monitoring
 - ⚠️ Configure alerts
 
-### P1 Features (Planned - Should-Have)
-- ⏳ Edit & Regenerate: Inline text editing, image replacement, instant regeneration
-- ⏳ Campaign History: Enhanced history view with last 10 campaigns
-- ⏳ Campaign Scheduling: Schedule approved campaigns for future deployment
-- ⏳ Editorial Review: Dedicated review interface for campaign managers
+### P1 Features (Complete - Should-Have)
+- ✅ Edit & Regenerate: Inline text editing, image replacement, instant regeneration - **COMPLETED**
+- ✅ Campaign History: Enhanced history view with last 10 campaigns - **COMPLETED**
+- ✅ Campaign Scheduling: Schedule approved campaigns for future deployment - **COMPLETED**
+- ✅ Editorial Review: Dedicated review interface for campaign managers - **COMPLETED**
 
 ### Future Enhancements (Post-P1)
 - Multiple template options
@@ -225,10 +235,21 @@
 - ✅ Docker configuration ready
 - ✅ Environment variable templates
 - ✅ Health checks implemented
+- ✅ Production deployment complete
+
+### Deployment Status ✅
+- ✅ AWS EC2 instance provisioned (t3.medium)
+- ✅ Elastic IP allocated: 44.212.209.159
+- ✅ S3 bucket configured: hibid-email-mvp-assets-1762970982
+- ✅ Security groups and IAM roles configured
+- ✅ Frontend deployed with nginx (port 3000)
+- ✅ Backend deployed with FastAPI (port 8000)
+- ✅ Production environment variables configured
+- ✅ Application accessible and functional
+- ✅ CORS and network issues resolved
 
 ### Pending
-- ⚠️ Production deployment
-- ⚠️ Monitoring setup
+- ⚠️ Monitoring setup (CloudWatch)
 - ⚠️ User acceptance testing
 
 ---
@@ -236,7 +257,9 @@
 ## Next Milestones
 
 ### Immediate
-1. Deploy to production
+1. ✅ Deploy to production - **COMPLETED**
+   - Application live at http://44.212.209.159:3000
+   - Backend API at http://44.212.209.159:8000
 2. Monitor performance
 3. Gather user feedback
 
@@ -263,7 +286,8 @@
 - **Test Files:** 5+ test files
 - **Documentation Files:** 10+ documentation files
 - **Post-MVP PRs Completed:** 7 (PRs #14-20)
-- **P1 Feature PRs Planned:** 4 (PRs #21-24, 15 hours total)
+- **P1 Feature PRs Completed:** 4 (PRs #21-24) - **ALL COMPLETE!**
+- **Total PRs Completed:** 24 (13 MVP + 7 Post-MVP + 4 P1 Features)
 
 ---
 
@@ -280,6 +304,38 @@
 ---
 
 ## Version History
+
+- **v1.4.0** (November 2025) - P1 Features: All Complete!
+  - PR #24 completed: Editorial Review Interface
+  - Database fields added: review_status, reviewer_notes
+  - Review endpoints: review campaign and list by review status
+  - Frontend: Dedicated review page with preview, editable content, and notes
+  - Frontend: Review status badges and "Review" button in campaigns list
+  - Content editing during review with automatic save
+  - All 4 P1 features now complete (PRs #21-24)
+
+- **v1.3.3** (November 2025) - P1 Features: Campaign Scheduling System Complete
+  - PR #23 completed: Campaign Scheduling System
+  - Database fields added: scheduled_at, scheduling_status
+  - Scheduling endpoints: schedule and cancel
+  - Background scheduler service checks every 60 seconds
+  - Frontend: Schedule modal with date/time picker
+  - Frontend: Scheduled badge, countdown timer, cancel functionality
+  - Automatic status update to "sent" when scheduled time arrives
+
+- **v1.3.2** (November 2025) - P1 Features: Campaign History Enhancement Complete
+  - PR #22 completed: Campaign History Enhancement
+  - New /history route with last 10 campaigns view
+  - Quick actions: re-download, view preview, edit
+  - Backend support for `last_n` filter and optional stats
+  - Compact card layout for easy campaign access
+
+- **v1.3.1** (November 2025) - P1 Features: Edit & Regenerate Complete
+  - PR #21 completed: Edit & Regenerate Feature
+  - Inline text editing in preview page
+  - Image replacement with hover-to-replace UI
+  - Instant preview regeneration (<2 seconds)
+  - All backend endpoints and frontend UI implemented
 
 - **v1.3.0** (November 2025) - P1 Features Planning
   - Added 4 P1 feature PRs to task breakdown (#21-24)
@@ -301,6 +357,13 @@
   - PR #20 completed
   - Added rejection confirmation dialog
   - Updated rejection navigation to campaigns list
+
+- **v1.5.0** (November 12, 2025) - Production Deployment
+  - Successfully deployed to AWS EC2
+  - Fixed frontend production build configuration
+  - Resolved CORS and network connectivity issues
+  - Application live at http://44.212.209.159:3000
+  - All P1 features deployed and functional
 
 - **v1.1.1** (November 2025) - Post-MVP Enhancements (continued)
   - PR #19 completed

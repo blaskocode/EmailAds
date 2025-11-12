@@ -133,3 +133,85 @@ async def update_campaign_assets(
     logger.info(f"Updated campaign assets: {campaign_id}")
     return campaign
 
+
+async def update_campaign_content(
+    campaign_id: str,
+    edit_request,
+    conn=None
+) -> Optional[Campaign]:
+    """
+    Update campaign content fields in ai_processing_data
+    
+    Args:
+        campaign_id: Campaign ID
+        edit_request: CampaignEditRequest with fields to update
+        conn: Database connection (optional, will use db.conn if not provided)
+        
+    Returns:
+        Updated Campaign object or None if not found
+    """
+    from app.models.schemas import CampaignEditRequest
+    
+    campaign = await get_campaign(campaign_id, conn=conn)
+    if not campaign:
+        return None
+    
+    # Use provided connection or ensure database connection exists
+    if conn is None:
+        if not hasattr(db, 'conn') or db.conn is None:
+            await db.connect()
+        conn = db.conn
+    
+    # Get current ai_processing_data
+    ai_data = campaign.ai_processing_data or {}
+    
+    # Ensure content structure exists
+    if 'content' not in ai_data:
+        ai_data['content'] = {}
+    
+    # Update only provided fields
+    edit_dict = edit_request.dict(exclude_unset=True)
+    for field, value in edit_dict.items():
+        if value is not None:
+            ai_data['content'][field] = value
+    
+    # Also update ai_results if they exist (for consistency)
+    if 'ai_results' in ai_data:
+        text_opt = ai_data['ai_results'].get('text_optimization', {})
+        
+        # Update text_optimization fields if they exist in edit request
+        if 'subject_line' in edit_dict and edit_dict['subject_line']:
+            # Update first subject line in suggestions
+            if 'subject_lines' in text_opt and text_opt['subject_lines']:
+                text_opt['subject_lines'][0] = edit_dict['subject_line']
+            else:
+                text_opt['subject_lines'] = [edit_dict['subject_line']]
+        
+        if 'preview_text' in edit_dict and edit_dict['preview_text']:
+            text_opt['preview_text'] = edit_dict['preview_text']
+        
+        if 'headline' in edit_dict and edit_dict['headline']:
+            text_opt['headline'] = edit_dict['headline']
+        
+        if 'body_copy' in edit_dict and edit_dict['body_copy']:
+            # Convert body_copy to paragraphs if it's a string
+            if isinstance(edit_dict['body_copy'], str):
+                # Split by newlines or create single paragraph
+                paragraphs = [p.strip() for p in edit_dict['body_copy'].split('\n') if p.strip()]
+                if not paragraphs:
+                    paragraphs = [edit_dict['body_copy']]
+                text_opt['body_paragraphs'] = paragraphs
+            else:
+                text_opt['body_paragraphs'] = edit_dict['body_copy']
+        
+        if 'cta_text' in edit_dict and edit_dict['cta_text']:
+            text_opt['cta_text'] = edit_dict['cta_text']
+        
+        ai_data['ai_results']['text_optimization'] = text_opt
+    
+    # Update campaign
+    await campaign.update(conn, ai_processing_data=ai_data)
+    
+    logger.info(f"Updated campaign content for {campaign_id}")
+    return campaign
+

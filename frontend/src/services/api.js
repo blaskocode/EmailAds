@@ -229,7 +229,7 @@ export const downloadCampaign = async (campaignId) => {
 
 /**
  * List all campaigns
- * @param {Object} params - Query parameters (status, limit, offset)
+ * @param {Object} params - Query parameters (status, limit, offset, last_n, include_stats)
  * @returns {Promise} Campaign list response
  */
 export const listCampaigns = async (params = {}) => {
@@ -257,6 +257,96 @@ export const resetCampaign = async (campaignId, clearFeedback = false) => {
   const response = await api.post(`/campaigns/${campaignId}/reset`, null, {
     params: { clear_feedback: clearFeedback }
   });
+  return response.data;
+};
+
+/**
+ * Edit campaign content (text fields)
+ * @param {string} campaignId - Campaign ID
+ * @param {Object} editData - Fields to update (subject_line, preview_text, body_copy, etc.)
+ * @returns {Promise} Edit response
+ */
+export const editCampaignContent = async (campaignId, editData) => {
+  const response = await api.post(`/campaigns/${campaignId}/edit`, editData);
+  return response.data;
+};
+
+/**
+ * Replace a campaign image (logo or hero image)
+ * @param {string} campaignId - Campaign ID
+ * @param {string} imageType - Type: 'logo' or 'hero_{index}' (e.g., 'hero_0')
+ * @param {File} file - New image file
+ * @returns {Promise} Replace response
+ */
+export const replaceCampaignImage = async (campaignId, imageType, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('image_type', imageType);
+  
+  const response = await api.post(`/campaigns/${campaignId}/replace-image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 30000, // 30 seconds for image upload
+  });
+  return response.data;
+};
+
+/**
+ * Regenerate campaign proof with updated content/images
+ * @param {string} campaignId - Campaign ID
+ * @returns {Promise} Preview response with regenerated HTML
+ */
+export const regenerateProof = async (campaignId) => {
+  const response = await api.post(`/campaigns/${campaignId}/regenerate`);
+  return response.data;
+};
+
+/**
+ * Schedule a campaign for future sending
+ * @param {string} campaignId - Campaign ID
+ * @param {string} scheduledAt - ISO 8601 datetime string
+ * @returns {Promise} Schedule response
+ */
+export const scheduleCampaign = async (campaignId, scheduledAt) => {
+  const response = await api.post(`/campaigns/${campaignId}/schedule`, {
+    scheduled_at: scheduledAt
+  });
+  return response.data;
+};
+
+/**
+ * Cancel a scheduled campaign
+ * @param {string} campaignId - Campaign ID
+ * @returns {Promise} Cancel response
+ */
+export const cancelSchedule = async (campaignId) => {
+  const response = await api.post(`/campaigns/${campaignId}/cancel-schedule`);
+  return response.data;
+};
+
+/**
+ * Review a campaign (editorial review)
+ * @param {string} campaignId - Campaign ID
+ * @param {string} reviewStatus - Review status (pending, reviewed, approved, rejected)
+ * @param {string} reviewerNotes - Optional reviewer notes
+ * @returns {Promise} Review response
+ */
+export const reviewCampaign = async (campaignId, reviewStatus, reviewerNotes = null) => {
+  const response = await api.post(`/campaigns/${campaignId}/review`, {
+    review_status: reviewStatus,
+    reviewer_notes: reviewerNotes || null
+  });
+  return response.data;
+};
+
+/**
+ * List campaigns by review status
+ * @param {Object} params - Query parameters (review_status, limit, offset)
+ * @returns {Promise} Campaign list response
+ */
+export const listCampaignsByReviewStatus = async (params = {}) => {
+  const response = await api.get('/campaigns/review/list', { params });
   return response.data;
 };
 

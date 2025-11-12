@@ -174,7 +174,7 @@ Create file: `s3-lifecycle-policy.json`
 {
   "Rules": [
     {
-      "Id": "DeleteOldAssets",
+      "ID": "DeleteOldAssets",
       "Status": "Enabled",
       "Prefix": "",
       "Expiration": {

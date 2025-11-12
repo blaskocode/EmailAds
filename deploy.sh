@@ -165,7 +165,7 @@ services:
     container_name: hibid-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       backend:
         condition: service_healthy

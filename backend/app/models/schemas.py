@@ -79,6 +79,10 @@ class CampaignResponse(BaseModel):
     proof_s3_path: Optional[str] = None
     feedback: Optional[str] = None
     ai_processing_data: Optional[Dict[str, Any]] = None
+    scheduled_at: Optional[str] = None
+    scheduling_status: Optional[str] = None
+    review_status: Optional[str] = None
+    reviewer_notes: Optional[str] = None
 
 
 class CampaignListResponse(BaseModel):
@@ -87,6 +91,7 @@ class CampaignListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+    stats: Optional[Dict[str, int]] = None  # Quick stats by status
 
 
 class CampaignStatusResponse(BaseModel):
@@ -103,3 +108,69 @@ class HealthResponse(BaseModel):
     database: Optional[str] = None
     s3: Optional[str] = None
 
+
+class CampaignEditRequest(BaseModel):
+    """Request schema for editing campaign content"""
+    subject_line: Optional[str] = Field(None, max_length=200, description="Updated subject line")
+    preview_text: Optional[str] = Field(None, max_length=200, description="Updated preview text")
+    body_copy: Optional[str] = Field(None, max_length=5000, description="Updated body copy")
+    cta_text: Optional[str] = Field(None, max_length=50, description="Updated CTA text")
+    cta_url: Optional[str] = Field(None, max_length=500, description="Updated CTA URL")
+    footer_text: Optional[str] = Field(None, max_length=500, description="Updated footer text")
+    headline: Optional[str] = Field(None, max_length=200, description="Updated headline")
+
+
+class CampaignEditResponse(BaseModel):
+    """Response schema for campaign edit"""
+    campaign_id: str
+    message: str
+    status: str
+
+
+class ImageReplaceRequest(BaseModel):
+    """Request schema for image replacement (not used, using Form data instead)"""
+    image_type: str = Field(..., description="Type: 'logo' or 'hero_{index}'")
+    # Note: File upload handled via Form/File, not in this schema
+
+
+class ImageReplaceResponse(BaseModel):
+    """Response schema for image replacement"""
+    campaign_id: str
+    image_type: str
+    image_url: str
+    message: str
+    status: str
+
+
+class ScheduleCampaignRequest(BaseModel):
+    """Request schema for scheduling a campaign"""
+    scheduled_at: str = Field(..., description="ISO 8601 datetime string for when to send the campaign")
+
+
+class ScheduleCampaignResponse(BaseModel):
+    """Response schema for scheduling a campaign"""
+    campaign_id: str
+    scheduled_at: str
+    scheduling_status: str
+    message: str
+
+
+class CancelScheduleResponse(BaseModel):
+    """Response schema for canceling a scheduled campaign"""
+    campaign_id: str
+    message: str
+    scheduling_status: Optional[str] = None
+
+
+class ReviewCampaignRequest(BaseModel):
+    """Request schema for reviewing a campaign"""
+    review_status: str = Field(..., pattern="^(pending|reviewed|approved|rejected)$", description="Review status: pending, reviewed, approved, or rejected")
+    reviewer_notes: Optional[str] = Field(None, max_length=2000, description="Optional notes from the reviewer")
+
+
+class ReviewCampaignResponse(BaseModel):
+    """Response schema for reviewing a campaign"""
+    campaign_id: str
+    review_status: str
+    reviewer_notes: Optional[str] = None
+    message: str

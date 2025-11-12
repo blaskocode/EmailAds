@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
-import { listCampaigns, resetCampaign } from '../services/api';
+import { listCampaigns, resetCampaign, scheduleCampaign, cancelSchedule } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
 const STATUS_OPTIONS = [
@@ -16,6 +16,13 @@ const STATUS_OPTIONS = [
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' }
 ];
+
+const REVIEW_STATUS_COLORS = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  reviewed: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-800'
+};
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-800',
@@ -38,6 +45,11 @@ function CampaignsListPage() {
   const [limit] = useState(100);
   const [offset, setOffset] = useState(0);
   const [resettingId, setResettingId] = useState(null);
+  const [schedulingId, setSchedulingId] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [scheduleDateTime, setScheduleDateTime] = useState('');
+  const [cancelingId, setCancelingId] = useState(null);
 
   useEffect(() => {
     loadCampaigns();
@@ -138,6 +150,84 @@ function CampaignsListPage() {
     return text.substring(0, maxLength) + '...';
   };
 
+  const handleScheduleClick = (campaign, e) => {
+    e.stopPropagation();
+    setSelectedCampaign(campaign);
+    // Set default to 1 hour from now
+    const defaultDate = new Date();
+    defaultDate.setHours(defaultDate.getHours() + 1);
+    setScheduleDateTime(defaultDate.toISOString().slice(0, 16)); // Format: YYYY-MM-DDTHH:mm
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSubmit = async () => {
+    if (!selectedCampaign || !scheduleDateTime) return;
+    
+    try {
+      setSchedulingId(selectedCampaign.id);
+      // Convert local datetime to ISO 8601 format
+      const scheduledAt = new Date(scheduleDateTime).toISOString();
+      await scheduleCampaign(selectedCampaign.id, scheduledAt);
+      showToast('Campaign scheduled successfully', 'success');
+      setShowScheduleModal(false);
+      setSelectedCampaign(null);
+      setScheduleDateTime('');
+      await loadCampaigns();
+    } catch (err) {
+      console.error('Error scheduling campaign:', err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          'Failed to schedule campaign';
+      showToast(errorMessage, 'error');
+    } finally {
+      setSchedulingId(null);
+    }
+  };
+
+  const handleCancelSchedule = async (campaignId, e) => {
+    e.stopPropagation();
+    
+    if (!window.confirm('Cancel this scheduled campaign?')) {
+      return;
+    }
+
+    try {
+      setCancelingId(campaignId);
+      await cancelSchedule(campaignId);
+      showToast('Schedule canceled successfully', 'success');
+      await loadCampaigns();
+    } catch (err) {
+      console.error('Error canceling schedule:', err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          'Failed to cancel schedule';
+      showToast(errorMessage, 'error');
+    } finally {
+      setCancelingId(null);
+    }
+  };
+
+  const getTimeUntilScheduled = (scheduledAt) => {
+    if (!scheduledAt) return null;
+    try {
+      const scheduled = new Date(scheduledAt);
+      const now = new Date();
+      const diff = scheduled - now;
+      
+      if (diff <= 0) return 'Past due';
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (days > 0) return `${days}d ${hours}h`;
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${minutes}m`;
+    } catch {
+      return null;
+    }
+  };
+
   if (loading && campaigns.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -215,8 +305,11 @@ function CampaignsListPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Scheduled
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Feedback
@@ -247,16 +340,44 @@ function CampaignsListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        STATUS_COLORS[campaign.status] || STATUS_COLORS.draft
-                      }`}>
-                        {campaign.status}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          STATUS_COLORS[campaign.status] || STATUS_COLORS.draft
+                        }`}>
+                          {campaign.status}
+                        </span>
+                        {campaign.scheduling_status === 'scheduled' && (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                            Scheduled
+                          </span>
+                        )}
+                        {campaign.review_status && (
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            REVIEW_STATUS_COLORS[campaign.review_status] || REVIEW_STATUS_COLORS.pending
+                          }`}>
+                            Review: {campaign.review_status}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {formatDate(campaign.created_at)}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {campaign.scheduling_status === 'scheduled' && campaign.scheduled_at ? (
+                        <div className="text-sm">
+                          <div className="text-gray-900 font-medium">
+                            {formatDate(campaign.scheduled_at)}
+                          </div>
+                          <div className="text-xs text-purple-600 mt-1">
+                            {getTimeUntilScheduled(campaign.scheduled_at)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-400">—</div>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600 max-w-xs">
@@ -272,6 +393,34 @@ function CampaignsListPage() {
                             className="px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {resettingId === campaign.id ? 'Resetting...' : 'Reset'}
+                          </button>
+                        )}
+                        {campaign.status === 'ready' || campaign.status === 'processed' ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/review/${campaign.id}`);
+                            }}
+                            className="px-3 py-1 text-xs bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
+                          >
+                            Review
+                          </button>
+                        ) : null}
+                        {campaign.status === 'approved' && campaign.scheduling_status !== 'scheduled' && (
+                          <button
+                            onClick={(e) => handleScheduleClick(campaign, e)}
+                            className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
+                          >
+                            Schedule
+                          </button>
+                        )}
+                        {campaign.scheduling_status === 'scheduled' && (
+                          <button
+                            onClick={(e) => handleCancelSchedule(campaign.id, e)}
+                            disabled={cancelingId === campaign.id}
+                            className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {cancelingId === campaign.id ? 'Canceling...' : 'Cancel'}
                           </button>
                         )}
                         <button
@@ -335,6 +484,58 @@ function CampaignsListPage() {
                 Create Campaign
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Modal */}
+      {showScheduleModal && selectedCampaign && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Schedule Campaign
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Schedule "{selectedCampaign.campaign_name}" for future sending.
+            </p>
+            
+            <div className="mb-4">
+              <label htmlFor="schedule-datetime" className="block text-sm font-medium text-gray-700 mb-2">
+                Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                id="schedule-datetime"
+                value={scheduleDateTime}
+                onChange={(e) => setScheduleDateTime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Select a future date and time
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowScheduleModal(false);
+                  setSelectedCampaign(null);
+                  setScheduleDateTime('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleScheduleSubmit}
+                disabled={!scheduleDateTime || schedulingId === selectedCampaign.id}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {schedulingId === selectedCampaign.id ? 'Scheduling...' : 'Schedule'}
+              </button>
+            </div>
           </div>
         </div>
       )}

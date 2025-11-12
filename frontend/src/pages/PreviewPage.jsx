@@ -7,7 +7,7 @@ import Loading from '../components/Loading';
 import PreviewFrame from '../components/PreviewFrame';
 import CampaignDetails from '../components/CampaignDetails';
 import ApprovalButtons from '../components/ApprovalButtons';
-import { getPreview, generateProof, processCampaign, getCampaignStatus } from '../services/api';
+import { getPreview, generateProof, processCampaign, getCampaignStatus, editCampaignContent, regenerateProof, replaceCampaignImage } from '../services/api';
 
 function PreviewPage() {
   const { campaignId } = useParams();
@@ -19,6 +19,10 @@ function PreviewPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // Track if we're automatically processing
   const processingRef = useRef(false); // Prevent duplicate processing
+  const [isEditing, setIsEditing] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isReplacingImage, setIsReplacingImage] = useState(false);
 
   useEffect(() => {
     loadPreview();
@@ -114,6 +118,61 @@ function PreviewPage() {
     }
   };
 
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      // Regenerate proof with latest campaign data
+      const regeneratedData = await regenerateProof(campaignId);
+      // Update preview data
+      setPreviewData(regeneratedData);
+      setError(null);
+    } catch (err) {
+      console.error('Error regenerating preview:', err);
+      setError(err.response?.data?.detail || err.userMessage || 'Failed to regenerate preview');
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (editData) => {
+    setIsSaving(true);
+    try {
+      // Save edited content
+      await editCampaignContent(campaignId, editData);
+      setIsEditing(false);
+      // Regenerate preview with new content
+      await handleRegenerate();
+    } catch (err) {
+      console.error('Error saving edit:', err);
+      setError(err.response?.data?.detail || err.userMessage || 'Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleReplaceImage = async (imageType, file) => {
+    setIsReplacingImage(true);
+    try {
+      // Replace image via API
+      await replaceCampaignImage(campaignId, imageType, file);
+      // Regenerate preview with new image
+      await handleRegenerate();
+    } catch (err) {
+      console.error('Error replacing image:', err);
+      setError(err.response?.data?.detail || err.userMessage || 'Failed to replace image');
+    } finally {
+      setIsReplacingImage(false);
+    }
+  };
+
   if (loading || isProcessing) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -205,10 +264,19 @@ function PreviewPage() {
               </button>
             </div>
 
+            {/* Regenerate Button */}
+            <button
+              onClick={handleRegenerate}
+              disabled={isRegenerating || refreshing}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRegenerating ? 'Regenerating...' : 'Regenerate Preview'}
+            </button>
+
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={refreshing || isRegenerating}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -256,6 +324,13 @@ function PreviewPage() {
           <CampaignDetails
             metadata={previewData.metadata}
             aiSuggestions={previewData.ai_suggestions}
+            isEditing={isEditing}
+            onEdit={handleEdit}
+            onSave={handleSaveEdit}
+            onCancel={handleCancelEdit}
+            assets={previewData.assets}
+            onReplaceImage={handleReplaceImage}
+            isReplacingImage={isReplacingImage}
           />
           
           {/* Approval Buttons */}

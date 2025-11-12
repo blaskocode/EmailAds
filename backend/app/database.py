@@ -74,6 +74,12 @@ class Database:
             # Migrate existing tables to add feedback column if it doesn't exist
             await self.migrate_add_feedback_column(cursor)
             
+            # Migrate existing tables to add scheduling columns if they don't exist
+            await self.migrate_add_scheduling_columns(cursor)
+            
+            # Migrate existing tables to add review columns if they don't exist
+            await self.migrate_add_review_columns(cursor)
+            
             # Create indexes
             await cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_campaigns_status 
@@ -104,6 +110,54 @@ class Database:
                 logger.info("Feedback column added successfully")
         except Exception as e:
             logger.warning(f"Could not add feedback column (may already exist): {e}")
+    
+    async def migrate_add_scheduling_columns(self, cursor):
+        """Add scheduling columns to existing campaigns table if they don't exist"""
+        try:
+            # Check if scheduling columns exist
+            await cursor.execute("PRAGMA table_info(campaigns)")
+            columns = await cursor.fetchall()
+            column_names = [col[1] for col in columns]
+            
+            if 'scheduled_at' not in column_names:
+                logger.info("Adding scheduled_at column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN scheduled_at TEXT
+                """)
+                logger.info("scheduled_at column added successfully")
+            
+            if 'scheduling_status' not in column_names:
+                logger.info("Adding scheduling_status column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN scheduling_status TEXT
+                """)
+                logger.info("scheduling_status column added successfully")
+        except Exception as e:
+            logger.warning(f"Could not add scheduling columns (may already exist): {e}")
+    
+    async def migrate_add_review_columns(self, cursor):
+        """Add review columns to existing campaigns table if they don't exist"""
+        try:
+            # Check if review columns exist
+            await cursor.execute("PRAGMA table_info(campaigns)")
+            columns = await cursor.fetchall()
+            column_names = [col[1] for col in columns]
+            
+            if 'review_status' not in column_names:
+                logger.info("Adding review_status column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN review_status TEXT
+                """)
+                logger.info("review_status column added successfully")
+            
+            if 'reviewer_notes' not in column_names:
+                logger.info("Adding reviewer_notes column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN reviewer_notes TEXT
+                """)
+                logger.info("reviewer_notes column added successfully")
+        except Exception as e:
+            logger.warning(f"Could not add review columns (may already exist): {e}")
 
 
 # Global database instance

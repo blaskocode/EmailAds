@@ -1,14 +1,73 @@
 # Active Context: HiBid Email MVP
 
-**Last Updated:** November 2025  
-**Current Status:** MVP Complete - Production Ready
+**Last Updated:** November 12, 2025  
+**Current Status:** MVP Complete - Production Deployed ✅
 
 ---
 
 ## Current Work Focus
 
 ### Recently Completed
-1. ✅ **PR #20: Add Rejection Confirmation Dialog & Update Navigation**
+1. ✅ **Production Deployment to AWS EC2**
+   - Fixed S3 lifecycle policy JSON format (ID vs Id)
+   - Updated frontend Dockerfile for production build with nginx
+   - Fixed frontend API URL configuration (was using localhost instead of production URL)
+   - Deployed to AWS EC2 instance (t3.medium) with Elastic IP: 44.212.209.159
+   - Configured S3 bucket: hibid-email-mvp-assets-1762970982
+   - Set up production environment variables and .env file
+   - Frontend and backend containers running successfully
+   - Application accessible at http://44.212.209.159:3000 (frontend) and http://44.212.209.159:8000 (backend)
+   - All CORS and network connectivity issues resolved
+   - Production deployment complete and verified
+
+2. ✅ **PR #24: Editorial Review Interface**
+   - Backend: Added review_status and reviewer_notes fields to database with migration
+   - Backend: Created review endpoint (POST /api/v1/campaigns/{campaign_id}/review) with status and notes
+   - Backend: Created list campaigns by review status endpoint (GET /api/v1/campaigns/review/list)
+   - Frontend: Created dedicated ReviewPage with side-by-side content review
+   - Frontend: Added email preview, editable content fields, and reviewer notes section
+   - Frontend: Added review status selector (pending, reviewed, approved, rejected)
+   - Frontend: Added "Review" button in campaigns list for ready/processed campaigns
+   - Frontend: Added review status badges in campaigns list
+   - Frontend: Content editing during review with automatic save on review submit
+   - Review workflow is separate from advertiser approval workflow
+   - Campaign managers can now review campaigns, add notes, and edit content during review
+
+2. ✅ **PR #23: Campaign Scheduling System**
+   - Backend: Added scheduling fields to database (scheduled_at, scheduling_status) with migration
+   - Backend: Created scheduling endpoint (POST /api/v1/campaigns/{campaign_id}/schedule) with future date validation
+   - Backend: Created cancel schedule endpoint (POST /api/v1/campaigns/{campaign_id}/cancel-schedule)
+   - Backend: Implemented scheduler service with background task that checks every 60 seconds
+   - Backend: Scheduler automatically marks campaigns as "sent" when scheduled time arrives
+   - Frontend: Added "Schedule Campaign" button for approved campaigns
+   - Frontend: Added scheduling modal with date/time picker (defaults to 1 hour from now)
+   - Frontend: Added "Scheduled" badge and scheduled date/time column in campaigns list
+   - Frontend: Added countdown timer showing time until scheduled send
+   - Frontend: Added "Cancel" button to cancel scheduled campaigns
+   - Users can now schedule approved campaigns for future sending with automatic status updates
+
+2. ✅ **PR #22: Campaign History Enhancement**
+   - Backend: Enhanced campaigns list endpoint with `last_n` filter option (for last 10 campaigns)
+   - Backend: Added `include_stats` parameter to return quick stats by status
+   - Backend: Campaigns already sorted by created_at DESC (newest first)
+   - Frontend: Created new HistoryPage component with compact card layout
+   - Frontend: Shows last 10 campaigns by default with prominent metadata display
+   - Frontend: Added quick actions: "Re-download HTML" for approved, "View Preview" for all, "Edit" for rejected
+   - Frontend: Added /history route and navigation link in header
+   - Users can now quickly access recent campaigns with one-click actions
+
+2. ✅ **PR #21: Edit & Regenerate Feature**
+   - Backend: Added edit endpoint (POST /api/v1/campaigns/{campaign_id}/edit) for partial text updates
+   - Backend: Added image replacement endpoint (POST /api/v1/campaigns/{campaign_id}/replace-image)
+   - Backend: Added regenerate proof endpoint (POST /api/v1/campaigns/{campaign_id}/regenerate)
+   - Frontend: Added inline text editing UI in CampaignDetails component with Edit/Save/Cancel buttons
+   - Frontend: Added image replacement UI with hover-to-replace functionality
+   - Frontend: Added "Regenerate Preview" button for instant preview updates
+   - Users can now edit text fields inline, replace individual images, and regenerate previews instantly
+   - Fixed import error (validate_image_file is not async)
+   - Fixed data structure updates to sync both top-level and ai_results.optimized_images
+
+2. ✅ **PR #20: Add Rejection Confirmation Dialog & Update Navigation**
    - Frontend: Added `showRejectConfirm` state to ApprovalButtons component
    - Added confirmation dialog for rejection (similar to approval flow)
    - Confirmation dialog displays feedback if provided
@@ -119,36 +178,19 @@
 
 ## Next Steps
 
-### Immediate (P1 Features - Planned)
-1. **PR #21: Edit & Regenerate Feature** ⏳ Proposed
-   - Allow inline text editing in preview
-   - Replace individual images without full re-upload
-   - Instant preview regeneration (<2 sec)
-   - Time estimate: 4 hours
-
-2. **PR #22: Campaign History Enhancement** ⏳ Proposed
-   - Show last 10 campaigns by default
-   - Quick actions (re-download, view preview)
-   - Enhanced history view
-   - Time estimate: 2 hours
-
-3. **PR #23: Campaign Scheduling System** ⏳ Proposed
-   - Schedule approved campaigns for future
-   - Background job processor
-   - Scheduling UI with date/time picker
-   - Time estimate: 5 hours
-
-4. **PR #24: Editorial Review Interface** ⏳ Proposed
-   - Dedicated review page for campaign managers
-   - Review status tracking
-   - Content editing during review
-   - Time estimate: 4 hours
+### Immediate (P1 Features - Complete)
+1. ✅ **All P1 Features Completed!**
+   - PR #21: Edit & Regenerate Feature ✅
+   - PR #22: Campaign History Enhancement ✅
+   - PR #23: Campaign Scheduling System ✅
+   - PR #24: Editorial Review Interface ✅
 
 ### Short Term
-1. **Deploy to Production**
-   - Follow PRODUCTION_READINESS.md checklist
-   - Use DEPLOYMENT_QUICKSTART.md guide
-   - Test in production environment
+1. ✅ **Deploy to Production** - COMPLETED
+   - ✅ Followed PRODUCTION_READINESS.md checklist
+   - ✅ Used DEPLOYMENT_QUICKSTART.md guide
+   - ✅ Tested in production environment
+   - ✅ Application live at http://44.212.209.159:3000
 
 2. **Monitor & Optimize**
    - Set up CloudWatch monitoring
@@ -314,12 +356,7 @@
 - Added automatic processing
 - Created memory bank structure
 
-**Status:** PR #20 completed. Rejection now requires confirmation dialog and navigates to campaigns list. All MVP and Post-MVP PRs completed! 
+**Status:** Production deployment completed successfully! Application is live on AWS EC2 at http://44.212.209.159:3000. All P1 features (PRs #21-24) are complete and deployed. Frontend and backend are running in production with proper configuration. All network connectivity and CORS issues have been resolved.
 
-**New:** Added 4 P1 feature PRs (#21-24) to TASK_BREAKDOWN.md:
-- PR #21: Edit & Regenerate Feature (4h)
-- PR #22: Campaign History Enhancement (2h)
-- PR #23: Campaign Scheduling System (5h)
-- PR #24: Editorial Review Interface (4h)
-Total: 15 hours of new P1 features planned.
+**Next:** Monitor production performance, gather user feedback, and consider future enhancements based on real-world usage.
 
