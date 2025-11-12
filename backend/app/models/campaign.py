@@ -28,7 +28,12 @@ class Campaign:
         scheduled_at: Optional[str] = None,
         scheduling_status: Optional[str] = None,
         review_status: Optional[str] = None,
-        reviewer_notes: Optional[str] = None
+        reviewer_notes: Optional[str] = None,
+        open_rate: Optional[float] = None,
+        click_rate: Optional[float] = None,
+        conversion_rate: Optional[float] = None,
+        performance_score: Optional[float] = None,
+        performance_timestamp: Optional[str] = None
     ):
         self.id = id or str(uuid.uuid4())
         self.campaign_name = campaign_name
@@ -46,6 +51,11 @@ class Campaign:
         self.scheduling_status = scheduling_status
         self.review_status = review_status
         self.reviewer_notes = reviewer_notes
+        self.open_rate = open_rate
+        self.click_rate = click_rate
+        self.conversion_rate = conversion_rate
+        self.performance_score = performance_score
+        self.performance_timestamp = performance_timestamp
     
     @classmethod
     def from_row(cls, row):
@@ -73,7 +83,12 @@ class Campaign:
             scheduled_at=row.get('scheduled_at'),
             scheduling_status=row.get('scheduling_status'),
             review_status=row.get('review_status'),
-            reviewer_notes=row.get('reviewer_notes')
+            reviewer_notes=row.get('reviewer_notes'),
+            open_rate=row.get('open_rate'),
+            click_rate=row.get('click_rate'),
+            conversion_rate=row.get('conversion_rate'),
+            performance_score=row.get('performance_score'),
+            performance_timestamp=row.get('performance_timestamp')
         )
     
     def to_dict(self):
@@ -94,7 +109,12 @@ class Campaign:
             'scheduled_at': self.scheduled_at,
             'scheduling_status': self.scheduling_status,
             'review_status': self.review_status,
-            'reviewer_notes': self.reviewer_notes
+            'reviewer_notes': self.reviewer_notes,
+            'open_rate': self.open_rate,
+            'click_rate': self.click_rate,
+            'conversion_rate': self.conversion_rate,
+            'performance_score': self.performance_score,
+            'performance_timestamp': self.performance_timestamp
         }
     
     async def save(self, conn):
@@ -109,8 +129,9 @@ class Campaign:
                 (id, campaign_name, advertiser_name, status, created_at, 
                  approved_at, assets_s3_path, html_s3_path, proof_s3_path, 
                  ai_processing_data, updated_at, feedback, scheduled_at, scheduling_status, 
-                 review_status, reviewer_notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 review_status, reviewer_notes, open_rate, click_rate, conversion_rate, 
+                 performance_score, performance_timestamp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 self.id,
                 self.campaign_name,
@@ -127,7 +148,12 @@ class Campaign:
                 self.scheduled_at,
                 self.scheduling_status,
                 self.review_status,
-                self.reviewer_notes
+                self.reviewer_notes,
+                self.open_rate,
+                self.click_rate,
+                self.conversion_rate,
+                self.performance_score,
+                self.performance_timestamp
             ))
             await conn.commit()
     

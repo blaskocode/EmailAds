@@ -154,7 +154,7 @@ function HistoryPage() {
               View All Campaigns
             </button>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/create')}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
             >
               New Campaign
@@ -257,7 +257,7 @@ function HistoryPage() {
               No campaign history found. Create your first campaign to get started!
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/create')}
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Create Campaign

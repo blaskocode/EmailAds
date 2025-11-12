@@ -222,14 +222,14 @@ async def get_campaign_status(
     Returns:
     - campaign_id: Campaign ID
     - status: Current campaign status (draft, uploaded, processed, ready, approved, rejected)
-    - can_preview: Whether preview is available (status is 'ready' or 'processed')
+    - can_preview: Whether preview is available (status is 'ready', 'processed', or 'approved')
     """
     try:
         campaign = await get_campaign(campaign_id, conn=conn)
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
-        can_preview = campaign.status in ['ready', 'processed']
+        can_preview = campaign.status in ['ready', 'processed', 'approved']
         
         return CampaignStatusResponse(
             campaign_id=campaign_id,

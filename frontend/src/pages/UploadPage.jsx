@@ -220,7 +220,7 @@ function UploadPage() {
   if (loading || loadingCampaign || loadingFiles) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white rounded-xl shadow-hibid p-8 border border-hibid-gray-200">
           <Loading 
             message={
               loadingFiles 
@@ -238,34 +238,36 @@ function UploadPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-white rounded-lg shadow-sm p-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          {editingCampaignId ? 'Edit Campaign' : 'Create New Campaign'}
-        </h2>
-        <p className="text-gray-600 mb-8">
-          {editingCampaignId 
-            ? 'Update your campaign details and assets. Upload new files to replace existing ones.'
-            : "Upload your assets and we'll generate a professional email campaign for you."}
-        </p>
+      <div className="bg-white rounded-xl shadow-hibid p-8 border border-hibid-gray-200">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-hibid-gray-900 mb-2">
+            {editingCampaignId ? 'Edit Campaign' : 'Create New Campaign'}
+          </h2>
+          <p className="text-hibid-gray-600">
+            {editingCampaignId 
+              ? 'Update your campaign details and assets. Upload new files to replace existing ones.'
+              : "Upload your assets and we'll generate a professional email campaign for you."}
+          </p>
+        </div>
         
         {editingCampaignId && hasExistingFiles && logo.length === 0 && heroImages.length === 0 && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl shadow-hibid">
+            <p className="text-sm text-yellow-800 font-medium">
               <strong>Note:</strong> Existing files are being loaded. If they don't appear, you may need to re-upload them.
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl shadow-hibid">
+            <p className="text-sm text-red-800 font-medium">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Campaign Information */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="border-b border-hibid-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-hibid-gray-900 mb-4">
               Campaign Information
             </h3>
             
@@ -293,8 +295,8 @@ function UploadPage() {
           </div>
 
           {/* Assets Upload */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="border-b border-hibid-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-hibid-gray-900 mb-4">
               Assets
             </h3>
 
@@ -317,8 +319,8 @@ function UploadPage() {
           </div>
 
           {/* Email Content */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="border-b border-hibid-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-hibid-gray-900 mb-4">
               Email Content
             </h3>
 
@@ -387,20 +389,20 @@ function UploadPage() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end space-x-4 pt-6">
+          <div className="flex justify-end space-x-4 pt-6 border-t border-hibid-gray-200">
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-6 py-2.5 border border-hibid-gray-300 rounded-lg text-hibid-gray-700 hover:bg-hibid-gray-50 transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-gradient-hibid text-white rounded-lg font-semibold hover:shadow-hibid-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-hibid"
               disabled={loading}
             >
-              {editingCampaignId ? 'Update & Resubmit Campaign' : 'Upload & Create Campaign'}
+              {loading ? 'Uploading...' : editingCampaignId ? 'Update Campaign' : 'Create Campaign'}
             </button>
           </div>
         </form>

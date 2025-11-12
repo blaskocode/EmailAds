@@ -351,6 +351,27 @@ export const listCampaignsByReviewStatus = async (params = {}) => {
 };
 
 /**
+ * Update campaign performance metrics
+ * @param {string} campaignId - Campaign ID
+ * @param {Object} metrics - Performance metrics (open_rate, click_rate, conversion_rate)
+ * @returns {Promise} Performance update response
+ */
+export const updateCampaignPerformance = async (campaignId, metrics) => {
+  const response = await api.post(`/campaigns/${campaignId}/performance`, metrics);
+  return response.data;
+};
+
+/**
+ * Get AI-based recommendations for a campaign
+ * @param {string} campaignId - Campaign ID
+ * @returns {Promise} Recommendations response
+ */
+export const getRecommendations = async (campaignId) => {
+  const response = await api.post(`/campaigns/${campaignId}/recommendations`);
+  return response.data;
+};
+
+/**
  * Health check
  * @returns {Promise} Health status
  */

@@ -80,6 +80,9 @@ class Database:
             # Migrate existing tables to add review columns if they don't exist
             await self.migrate_add_review_columns(cursor)
             
+            # Migrate existing tables to add performance columns if they don't exist
+            await self.migrate_add_performance_columns(cursor)
+            
             # Create indexes
             await cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_campaigns_status 
@@ -158,6 +161,51 @@ class Database:
                 logger.info("reviewer_notes column added successfully")
         except Exception as e:
             logger.warning(f"Could not add review columns (may already exist): {e}")
+    
+    async def migrate_add_performance_columns(self, cursor):
+        """Add performance tracking columns to existing campaigns table if they don't exist"""
+        try:
+            # Check if performance columns exist
+            await cursor.execute("PRAGMA table_info(campaigns)")
+            columns = await cursor.fetchall()
+            column_names = [col[1] for col in columns]
+            
+            if 'open_rate' not in column_names:
+                logger.info("Adding open_rate column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN open_rate REAL
+                """)
+                logger.info("open_rate column added successfully")
+            
+            if 'click_rate' not in column_names:
+                logger.info("Adding click_rate column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN click_rate REAL
+                """)
+                logger.info("click_rate column added successfully")
+            
+            if 'conversion_rate' not in column_names:
+                logger.info("Adding conversion_rate column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN conversion_rate REAL
+                """)
+                logger.info("conversion_rate column added successfully")
+            
+            if 'performance_score' not in column_names:
+                logger.info("Adding performance_score column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN performance_score REAL
+                """)
+                logger.info("performance_score column added successfully")
+            
+            if 'performance_timestamp' not in column_names:
+                logger.info("Adding performance_timestamp column to campaigns table")
+                await cursor.execute("""
+                    ALTER TABLE campaigns ADD COLUMN performance_timestamp TEXT
+                """)
+                logger.info("performance_timestamp column added successfully")
+        except Exception as e:
+            logger.warning(f"Could not add performance columns (may already exist): {e}")
 
 
 # Global database instance

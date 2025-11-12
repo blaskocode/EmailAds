@@ -14,17 +14,17 @@ function Toast({ message, type = 'info', onClose, duration = 3000 }) {
   }, [duration, onClose]);
 
   const typeStyles = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    success: 'bg-green-50 border-green-200 text-green-800 shadow-hibid',
+    error: 'bg-red-50 border-red-200 text-red-800 shadow-hibid',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 shadow-hibid',
+    info: 'bg-hibid-blue-50 border-hibid-blue-200 text-hibid-blue-800 shadow-hibid',
   };
 
   const iconStyles = {
     success: 'text-green-600',
     error: 'text-red-600',
     warning: 'text-yellow-600',
-    info: 'text-blue-600',
+    info: 'text-hibid-blue-600',
   };
 
   const icons = {
@@ -52,7 +52,7 @@ function Toast({ message, type = 'info', onClose, duration = 3000 }) {
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${typeStyles[type]} animate-slide-in`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${typeStyles[type]} animate-slide-in transition-all duration-200`}
       role="alert"
     >
       <div className={iconStyles[type]}>
@@ -62,7 +62,7 @@ function Toast({ message, type = 'info', onClose, duration = 3000 }) {
       {onClose && (
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 focus:outline-none"
+          className="text-hibid-gray-400 hover:text-hibid-gray-600 focus:outline-none transition-colors"
           aria-label="Close"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

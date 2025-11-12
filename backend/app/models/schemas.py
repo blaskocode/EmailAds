@@ -83,6 +83,11 @@ class CampaignResponse(BaseModel):
     scheduling_status: Optional[str] = None
     review_status: Optional[str] = None
     reviewer_notes: Optional[str] = None
+    open_rate: Optional[float] = None
+    click_rate: Optional[float] = None
+    conversion_rate: Optional[float] = None
+    performance_score: Optional[float] = None
+    performance_timestamp: Optional[str] = None
 
 
 class CampaignListResponse(BaseModel):
@@ -98,7 +103,7 @@ class CampaignStatusResponse(BaseModel):
     """Response schema for campaign status check"""
     campaign_id: str
     status: str
-    can_preview: bool  # True if status is 'ready' or 'processed'
+    can_preview: bool  # True if status is 'ready', 'processed', or 'approved'
 
 
 class HealthResponse(BaseModel):
@@ -174,3 +179,54 @@ class ReviewCampaignResponse(BaseModel):
     review_status: str
     reviewer_notes: Optional[str] = None
     message: str
+
+
+class PerformanceUpdateRequest(BaseModel):
+    """Request schema for updating campaign performance metrics"""
+    open_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Open rate as decimal (0.0 to 1.0)")
+    click_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Click rate as decimal (0.0 to 1.0)")
+    conversion_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Conversion rate as decimal (0.0 to 1.0)")
+
+
+class PerformanceUpdateResponse(BaseModel):
+    """Response schema for performance update"""
+    campaign_id: str
+    open_rate: Optional[float] = None
+    click_rate: Optional[float] = None
+    conversion_rate: Optional[float] = None
+    performance_score: Optional[float] = None
+    performance_timestamp: Optional[str] = None
+    message: str
+
+
+class RecommendationRequest(BaseModel):
+    """Request schema for getting recommendations (optional - can use campaign data)"""
+    pass  # Recommendations are based on campaign data, no additional input needed
+
+
+class RecommendationItem(BaseModel):
+    """Schema for a single recommendation"""
+    content: str
+    confidence_score: float = Field(..., ge=0.0, le=1.0, description="Confidence score (0.0 to 1.0)")
+    reasoning: str = Field(..., description="Explanation of why this recommendation was made")
+    based_on_count: Optional[int] = Field(None, description="Number of similar high-performing campaigns used")
+
+
+class RecommendationsResponse(BaseModel):
+    """Response schema for recommendations"""
+    campaign_id: str
+    subject_line_recommendations: List[RecommendationItem]
+    preview_text_recommendations: List[RecommendationItem]
+    cta_text_recommendations: List[RecommendationItem]
+    content_structure_suggestions: Optional[str] = None
+    image_optimization_suggestions: Optional[str] = None
+    historical_data_available: bool = Field(..., description="Whether historical data was used")
+    total_campaigns_analyzed: Optional[int] = Field(None, description="Number of historical campaigns analyzed")
+
+
+class TestDataGenerationResponse(BaseModel):
+    """Response schema for test data generation"""
+    generated: int = Field(..., description="Number of campaigns updated with test data")
+    message: str
+    summary: Dict[str, int] = Field(..., description="Summary by performance tier")
+    campaigns: List[Dict[str, Any]] = Field(..., description="List of updated campaigns with their metrics")

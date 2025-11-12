@@ -15,23 +15,46 @@ Frontend (React) → Backend API (FastAPI) → Services Layer → External APIs
 
 ## Key Design Patterns
 
-### 1. Service Layer Pattern
+### 1. UI Design System (HiBid Branding)
+
+The application uses a consistent design system with HiBid brand colors:
+- **Primary Colors:** Vibrant blue (#2563EB), light gray/white (#F9FAFB), dark gray (#1F2937)
+- **Component Pattern:** Card-based layouts with rounded-xl corners and custom shadows
+- **Responsive Design:** Mobile-first approach with responsive grids and breakpoints
+- **Component Architecture:** Modular components extracted for file length compliance (500-line limit)
+  - StatsCards component for dashboard statistics
+  - CampaignsSearchBar component for search and filtering
+  - Consistent styling across all components using Tailwind CSS with custom HiBid theme
+
+**Design Principles:**
+- Modern, professional appearance optimized for marketing teams
+- Smooth animations and transitions (duration-200, hover effects)
+- Consistent spacing scale and typography hierarchy
+- Enhanced empty states, loading states, and error states
+- Gradient buttons for primary actions
+- Shadow system (shadow-hibid, shadow-hibid-lg) for depth
+
+### 2. Service Layer Pattern
 
 All business logic is encapsulated in service classes:
-- `ai_service.py` - OpenAI integration
+- `ai_service.py` - OpenAI integration (with historical context support)
+- `analytics_service.py` - Campaign performance analytics aggregation
 - `campaign_service.py` - Database operations
 - `file_service.py` - File handling
 - `image_service.py` - Image processing
 - `proof_service.py` - Proof generation
+- `recommendation_service.py` - AI-based content recommendations
 - `s3_service.py` - AWS S3 operations
+- `scheduler_service.py` - Campaign scheduling background tasks
 - `template_service.py` - Email template rendering
+- `test_data_generator.py` - Test performance data generation
 
 **Benefits:**
 - Separation of concerns
 - Testability
 - Reusability
 
-### 2. Dependency Injection
+### 3. Dependency Injection
 
 FastAPI dependencies used for:
 - Database connections (`get_db()`)
@@ -44,7 +67,7 @@ async def endpoint(conn = Depends(get_db)):
     # Use conn for database operations
 ```
 
-### 3. Async/Await Pattern
+### 4. Async/Await Pattern
 
 All I/O operations are async:
 - Database queries (aiosqlite)
@@ -57,7 +80,7 @@ All I/O operations are async:
 - Better performance
 - Concurrent processing
 
-### 4. Error Handling Strategy
+### 5. Error Handling Strategy
 
 **Layered Error Handling:**
 1. **Route Level:** Catch HTTPException, re-raise
@@ -70,7 +93,7 @@ All I/O operations are async:
 - `S3Error`
 - `AIProcessingError`
 
-### 5. Database Connection Management
+### 6. Database Connection Management
 
 **Pattern:** Single global connection with validation
 - Connection initialized at startup
@@ -78,7 +101,7 @@ All I/O operations are async:
 - Shared across requests (SQLite limitation)
 - Future: Connection pooling for PostgreSQL
 
-### 6. File Upload Pattern
+### 7. File Upload Pattern
 
 **Multi-step Process:**
 1. Validate file type and size
@@ -98,7 +121,7 @@ All I/O operations are async:
 - S3 errors logged and returned as 500
 - Database errors trigger reconnection
 
-### 7. AI Processing Pattern
+### 8. AI Processing Pattern
 
 **Parallel Processing:**
 - Text and image processing run concurrently
@@ -106,7 +129,7 @@ All I/O operations are async:
 - Timeout handling (10 sec max)
 - Fallback for AI failures
 
-### 8. Template Rendering Pattern
+### 9. Template Rendering Pattern
 
 **MJML → HTML Pipeline:**
 1. Load MJML template
@@ -127,8 +150,31 @@ app/
 ├── config.py         # Settings (Pydantic BaseSettings)
 ├── database.py       # Connection management
 ├── models/           # Data models (Campaign, Schemas)
-├── routes/           # API endpoints (6 routes)
-├── services/         # Business logic (7 services)
+├── routes/           # API endpoints (13+ routes)
+│   ├── upload.py
+│   ├── process.py
+│   ├── generate.py
+│   ├── preview.py
+│   ├── approve.py
+│   ├── download.py
+│   ├── campaign.py
+│   ├── edit.py
+│   ├── schedule.py
+│   ├── review.py
+│   ├── performance.py
+│   └── recommendations.py
+├── services/         # Business logic (11 services)
+│   ├── ai_service.py
+│   ├── analytics_service.py
+│   ├── campaign_service.py
+│   ├── file_service.py
+│   ├── image_service.py
+│   ├── proof_service.py
+│   ├── recommendation_service.py
+│   ├── s3_service.py
+│   ├── scheduler_service.py
+│   ├── template_service.py
+│   └── test_data_generator.py
 ├── utils/            # Helpers (validators, error handlers)
 └── templates/        # MJML email template
 ```
@@ -170,8 +216,12 @@ Client → Preview Route → Campaign Service → Proof Service → Template Ser
 
 ### Backend State
 - **Campaign Status:** `uploaded → processed → ready → approved/rejected`
-- **Database:** SQLite with status tracking
+- **Scheduling Status:** `pending → scheduled → sent`
+- **Review Status:** `pending → reviewed → approved/rejected`
+- **Database:** SQLite with status tracking, performance metrics, scheduling, and review fields
 - **S3:** Asset storage with metadata
+- **Performance Tracking:** open_rate, click_rate, conversion_rate, performance_score
+- **Approval Protection:** Approved campaigns cannot be re-approved or re-rejected (backend validation)
 
 ### Frontend State
 - **React State:** Component-level state management

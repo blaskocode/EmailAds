@@ -101,25 +101,27 @@ function FileUpload({
 
   return (
     <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-hibid-gray-700 mb-2">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
           isDragActive
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-hibid-blue-500 bg-hibid-blue-50 shadow-hibid'
             : error
             ? 'border-red-500 bg-red-50'
-            : 'border-gray-300 hover:border-gray-400 bg-gray-50'
+            : 'border-hibid-gray-300 hover:border-hibid-blue-400 hover:bg-hibid-gray-50 bg-hibid-gray-50'
         }`}
       >
         <input {...getInputProps()} />
         <div className="space-y-2">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className={`mx-auto h-12 w-12 transition-colors ${
+              isDragActive ? 'text-hibid-blue-600' : 'text-hibid-gray-400'
+            }`}
             stroke="currentColor"
             fill="none"
             viewBox="0 0 48 48"
@@ -131,12 +133,14 @@ function FileUpload({
               strokeLinejoin="round"
             />
           </svg>
-          <p className="text-sm text-gray-600">
+          <p className={`text-sm font-medium ${
+            isDragActive ? 'text-hibid-blue-700' : 'text-hibid-gray-600'
+          }`}>
             {isDragActive
               ? 'Drop the files here...'
               : 'Drag and drop files here, or click to select'}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-hibid-gray-500">
             {maxFiles === 1
               ? 'PNG, JPG, JPEG, GIF up to 5MB'
               : `Up to ${maxFiles} files, PNG, JPG, JPEG, GIF up to 5MB each`}
@@ -145,7 +149,7 @@ function FileUpload({
       </div>
 
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-red-600 font-medium">{error}</p>
       )}
 
       {/* File previews */}
@@ -154,7 +158,7 @@ function FileUpload({
           {files.map((file, index) => (
             <div
               key={index}
-              className="relative border rounded-lg overflow-hidden bg-white"
+              className="relative border border-hibid-gray-200 rounded-xl overflow-hidden bg-white shadow-hibid hover:shadow-hibid-lg transition-shadow"
             >
               <img
                 src={URL.createObjectURL(file)}
@@ -162,17 +166,17 @@ function FileUpload({
                 className="w-full h-32 object-cover"
               />
               <div className="p-2">
-                <p className="text-xs text-gray-700 truncate" title={file.name}>
+                <p className="text-xs text-hibid-gray-700 truncate font-medium" title={file.name}>
                   {file.name}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-hibid-gray-500">
                   {formatFileSize(file.size)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => removeFile(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-md hover:shadow-lg"
                 aria-label="Remove file"
               >
                 <svg

@@ -36,10 +36,10 @@ async def get_campaign_preview(
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
-        # If campaign is ready, use cached proof (fast path)
+        # If campaign is ready or approved, use cached proof (fast path)
         # If processed but not ready, generate proof
         # If uploaded but not processed, need to process first
-        if campaign.status == 'ready' and campaign.proof_s3_path:
+        if (campaign.status == 'ready' or campaign.status == 'approved') and campaign.proof_s3_path:
             # Campaign already has proof, generate preview data from it
             proof_result = await generate_proof(campaign_id, campaign, use_cache=True)
         elif campaign.status == 'processed':

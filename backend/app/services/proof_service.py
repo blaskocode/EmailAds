@@ -57,7 +57,8 @@ async def generate_proof(
                 raise ValueError(f"Campaign {campaign_id} not found")
         
         # Check if campaign has been processed
-        if campaign_obj.status != 'processed' and campaign_obj.status != 'ready':
+        # Allow processed, ready, and approved statuses (approved campaigns already have proofs)
+        if campaign_obj.status not in ['processed', 'ready', 'approved']:
             raise ValueError(
                 f"Campaign {campaign_id} must be processed before generating proof. "
                 f"Current status: {campaign_obj.status}"

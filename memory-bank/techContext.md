@@ -134,7 +134,17 @@ CREATE TABLE campaigns (
     html_s3_path TEXT,
     proof_s3_path TEXT,
     ai_processing_data TEXT,  -- JSON stored as text
-    updated_at TEXT
+    updated_at TEXT,
+    feedback TEXT,
+    scheduled_at TEXT,
+    scheduling_status TEXT,
+    review_status TEXT,
+    reviewer_notes TEXT,
+    open_rate REAL,
+    click_rate REAL,
+    conversion_rate REAL,
+    performance_score REAL,
+    performance_timestamp TEXT
 )
 ```
 
@@ -145,6 +155,18 @@ CREATE TABLE campaigns (
 - `ready` - Proof generated
 - `approved` - Campaign approved
 - `rejected` - Campaign rejected
+- `sent` - Campaign sent (scheduled)
+
+**Scheduling Status Values:**
+- `pending` - Scheduled but not yet sent
+- `scheduled` - Scheduled for future sending
+- `sent` - Sent at scheduled time
+
+**Review Status Values:**
+- `pending` - Awaiting review
+- `reviewed` - Review completed
+- `approved` - Review approved
+- `rejected` - Review rejected
 
 ---
 
@@ -160,6 +182,18 @@ CREATE TABLE campaigns (
 4. `GET /preview/{campaign_id}` - Get preview data
 5. `POST /approve/{campaign_id}` - Approve/reject campaign
 6. `GET /download/{campaign_id}` - Download HTML
+7. `GET /campaigns` - List campaigns (with filters)
+8. `GET /campaigns/{campaign_id}` - Get campaign details
+9. `POST /campaigns/{campaign_id}/edit` - Edit campaign text
+10. `POST /campaigns/{campaign_id}/replace-image` - Replace image
+11. `POST /campaigns/{campaign_id}/regenerate` - Regenerate proof
+12. `POST /campaigns/{campaign_id}/schedule` - Schedule campaign
+13. `POST /campaigns/{campaign_id}/cancel-schedule` - Cancel schedule
+14. `POST /campaigns/{campaign_id}/review` - Review campaign
+15. `GET /campaigns/review/list` - List campaigns by review status
+16. `POST /campaigns/{campaign_id}/performance` - Update performance metrics
+17. `POST /campaigns/{campaign_id}/recommendations` - Get AI recommendations
+18. `POST /test/generate-performance-data` - Generate test performance data
 
 ### Health Check
 `GET /health` - Service health status
@@ -213,9 +247,12 @@ frontend/
 │   ├── App.jsx              # Router setup
 │   ├── main.jsx             # Entry point
 │   ├── pages/                # Route pages
-│   │   ├── UploadPage.jsx
+│   │   ├── CampaignsListPage.jsx
+│   │   ├── HistoryPage.jsx
 │   │   ├── PreviewPage.jsx
-│   │   └── SuccessPage.jsx
+│   │   ├── ReviewPage.jsx
+│   │   ├── SuccessPage.jsx
+│   │   └── UploadPage.jsx
 │   ├── components/           # Reusable components
 │   │   ├── ApprovalButtons.jsx
 │   │   ├── CampaignDetails.jsx
@@ -227,6 +264,7 @@ frontend/
 │   │   ├── Layout.jsx
 │   │   ├── Loading.jsx
 │   │   ├── PreviewFrame.jsx
+│   │   ├── RecommendationsPanel.jsx
 │   │   └── Toast.jsx
 │   ├── contexts/             # React contexts
 │   │   └── ToastContext.jsx

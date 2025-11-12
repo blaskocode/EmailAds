@@ -864,6 +864,12 @@ PR #1 (Setup)
                                                     │
                                                     ↓
                                             PR #25 (AI Recommendations)
+                                                    │
+                                                    ↓
+                                            PR #26 (Default Route)
+                                                    │
+                                                    ↓
+                                            PR #27 (UI Redesign)
 ```
 
 ---
@@ -898,8 +904,10 @@ Use this to track actual time vs. estimates:
 | #22| 2h | | | ✅ Completed |
 | #23| 5h | | | ✅ Completed |
 | #24| 4h | | | ✅ Completed |
-| #25| 8h | | | ⏳ Proposed |
-| **Total** | **70.5h** | | | |
+| #25| 9h | | | ✅ Completed |
+| #26| 1h | | | ✅ Completed |
+| #27| 6h | | | ✅ Completed |
+| **Total** | **78.5h** | | | |
 
 ---
 
@@ -1418,15 +1426,15 @@ Use this to track actual time vs. estimates:
 
 ## PR #25: AI-Based Content Suggestions from Past Performance
 **Branch:** `feature/ai-content-suggestions`  
-**Time Estimate:** 8 hours  
+**Time Estimate:** 9 hours (updated: added test data generator)  
 **Dependencies:** PR #17, PR #24  
-**Status:** ⏳ Proposed
+**Status:** ✅ Completed
 
 ### Overview
 Implement AI-based content suggestions that learn from past campaign performance to provide personalized recommendations. This addresses the P2 requirement gap where current AI suggestions are generated fresh per campaign without leveraging historical data.
 
 ### Tasks
-- [ ] **25.1** Backend: Campaign performance tracking
+- [x] **25.1** Backend: Campaign performance tracking
   - Add performance metrics fields to campaigns table
     - `open_rate` (optional, decimal)
     - `click_rate` (optional, decimal)
@@ -1440,7 +1448,7 @@ Implement AI-based content suggestions that learn from past campaign performance
     - Calculate performance score
     - Update campaign record
 
-- [ ] **25.2** Backend: Analytics aggregation service
+- [x] **25.2** Backend: Analytics aggregation service
   - Create analytics service to aggregate campaign performance
   - Calculate average performance by:
     - Subject line patterns
@@ -1451,7 +1459,7 @@ Implement AI-based content suggestions that learn from past campaign performance
   - Store aggregated analytics in database (new `campaign_analytics` table)
   - Update analytics periodically (daily batch job or on-demand)
 
-- [ ] **25.3** Backend: Recommendation engine
+- [x] **25.3** Backend: Recommendation engine
   - Create recommendation service
   - Analyze current campaign content
   - Match against historical high-performing campaigns
@@ -1462,14 +1470,14 @@ Implement AI-based content suggestions that learn from past campaign performance
     - Optimal image count/arrangement
   - Return ranked suggestions with confidence scores
 
-- [ ] **25.4** Backend: Enhanced AI service integration
+- [x] **25.4** Backend: Enhanced AI service integration
   - Update AI service to accept historical context
   - Pass top-performing examples to GPT-4 prompts
   - Generate suggestions that align with proven patterns
   - Combine AI creativity with data-driven insights
   - Fallback to standard AI suggestions if no historical data available
 
-- [ ] **25.5** Backend: Recommendations endpoint
+- [x] **25.5** Backend: Recommendations endpoint
   - POST /api/v1/campaigns/{campaign_id}/recommendations
   - Accept current campaign content
   - Return personalized suggestions:
@@ -1480,14 +1488,14 @@ Implement AI-based content suggestions that learn from past campaign performance
     - Image optimization suggestions
   - Include confidence scores and reasoning
 
-- [ ] **25.6** Frontend: Performance metrics display
+- [x] **25.6** Frontend: Performance metrics display
   - Add performance section to CampaignDetails component
   - Display performance metrics (if available)
   - Show performance score with visual indicator
   - Add "View Performance" button for approved campaigns
   - Performance dashboard (optional, can be separate page)
 
-- [ ] **25.7** Frontend: Recommendations UI
+- [x] **25.7** Frontend: Recommendations UI
   - Add "Get Recommendations" button in PreviewPage
   - Create recommendations panel/modal
   - Display personalized suggestions with confidence scores
@@ -1495,17 +1503,27 @@ Implement AI-based content suggestions that learn from past campaign performance
   - Allow applying suggestions with one click
   - Show comparison: current vs. recommended
 
-- [ ] **25.8** Frontend: Analytics integration (optional)
+- [x] **25.8** Frontend: Analytics integration (optional)
   - Add analytics input form (for manual entry or future API integration)
   - Allow campaign managers to update performance metrics
   - Display analytics trends over time
   - Show top-performing campaigns
 
-- [ ] **25.9** Backend: Batch analytics job (optional)
+- [x] **25.9** Backend: Batch analytics job (optional)
   - Create background job to update analytics daily
   - Aggregate performance data
   - Calculate trends and patterns
   - Store in analytics table for fast retrieval
+
+- [x] **25.10** Backend: Test data generator for demo purposes
+  - Create test data generator service
+  - Generate realistic performance metrics for approved campaigns
+  - Support different performance tiers (high, medium, low performers)
+  - Create endpoint: POST /api/v1/test/generate-performance-data
+  - Find approved campaigns without performance data
+  - Generate varied, realistic metrics (open_rate, click_rate, conversion_rate)
+  - Update campaigns with generated metrics and calculated performance scores
+  - Return summary of generated data
 
 **Acceptance Criteria:**
 - ✅ Campaign performance metrics can be stored and retrieved
@@ -1516,10 +1534,12 @@ Implement AI-based content suggestions that learn from past campaign performance
 - ✅ Users can apply recommendations with one click
 - ✅ System gracefully handles cases with no historical data
 - ✅ Performance metrics are displayed for campaigns
+- ✅ Test data generator creates realistic demo data for approved campaigns
 
 **Files Created:**
 - backend/app/services/analytics_service.py
 - backend/app/services/recommendation_service.py
+- backend/app/services/test_data_generator.py
 - backend/app/routes/analytics.py
 - backend/app/routes/recommendations.py
 - frontend/src/components/RecommendationsPanel.jsx
@@ -1530,6 +1550,8 @@ Implement AI-based content suggestions that learn from past campaign performance
 - backend/app/models/campaign.py (add performance fields)
 - backend/app/models/schemas.py (add performance schemas)
 - backend/app/services/ai_service.py (integrate historical context)
+- backend/app/routes/performance.py (add test data generator endpoint)
+- backend/app/main.py (register test routes if separate file)
 - frontend/src/pages/PreviewPage.jsx (add recommendations UI)
 - frontend/src/components/CampaignDetails.jsx (add performance display)
 - frontend/src/services/api.js (add recommendations endpoints)
@@ -1540,9 +1562,252 @@ Implement AI-based content suggestions that learn from past campaign performance
 - GPT-4 prompts enhanced with top-performing examples as context
 - Analytics aggregation runs on-demand or via scheduled job
 - System works even with minimal historical data (graceful degradation)
+- Test data generator creates realistic demo metrics for testing and demonstrations
+- Test data generator distributes campaigns across performance tiers for varied recommendations
 
 ---
 
 **Document Status:** Ready for development  
 **Last Updated:** November 12, 2025  
-**Version:** 1.4
+**Version:** 1.5.1
+
+---
+
+# BUG FIXES & IMPROVEMENTS (Post-P2)
+
+## Bug Fix: Preview Access for Approved Campaigns
+**Status:** ✅ Completed  
+**Date:** November 12, 2025
+
+### Issue
+Approved campaigns couldn't view their previews - error: "Campaign must be processed before generating proof. Current status: approved"
+
+### Fixes Applied
+- ✅ Updated `proof_service.py` to allow 'approved' status in validation (line 61)
+- ✅ Updated `preview.py` endpoint to handle 'approved' status with cached proof (line 42)
+- ✅ Updated `campaign.py` status endpoint to return `can_preview: true` for approved campaigns (line 232)
+- ✅ Updated schema comments in `schemas.py` to reflect approved status support
+
+### Files Modified
+- `backend/app/services/proof_service.py`
+- `backend/app/routes/preview.py`
+- `backend/app/routes/campaign.py`
+- `backend/app/models/schemas.py`
+
+---
+
+## Bug Fix: Prevent Re-Approval/Rejection of Approved Campaigns
+**Status:** ✅ Completed  
+**Date:** November 12, 2025
+
+### Issue
+Approved campaigns could still be approved or rejected again, showing approval buttons when they shouldn't.
+
+### Fixes Applied
+- ✅ Added backend validation in `approve.py` to prevent re-approval/rejection (line 49-53)
+- ✅ Added `campaignStatus` state tracking in PreviewPage
+- ✅ Added conditional rendering to hide approval buttons when campaign is approved
+- ✅ Added approved status message display with checkmark icon
+- ✅ **Verified:** Approval buttons correctly disappear for approved campaigns
+
+### Files Modified
+- `backend/app/routes/approve.py`
+- `frontend/src/pages/PreviewPage.jsx`
+
+---
+
+## Code Quality: File Length Limit Compliance
+**Status:** ✅ Completed  
+**Date:** November 12, 2025
+
+### Issue
+`CampaignsListPage.jsx` exceeded 500-line limit (547 lines)
+
+### Fixes Applied
+- ✅ Split file into smaller modules:
+  - Created `frontend/src/utils/campaignsListUtils.js` (constants and utilities)
+  - Created `frontend/src/components/ScheduleModal.jsx` (schedule modal component)
+  - Reduced main file to 452 lines (under 500 limit)
+- ✅ All files now comply with 500-line limit rule
+
+### Files Created
+- `frontend/src/utils/campaignsListUtils.js`
+- `frontend/src/components/ScheduleModal.jsx`
+
+### Files Modified
+- `frontend/src/pages/CampaignsListPage.jsx`
+
+---
+
+---
+
+# PHASE 8: UX IMPROVEMENTS
+
+## PR #26: Change Default Route to Campaigns List
+**Branch:** `feature/default-route-campaigns`  
+**Time Estimate:** 1 hour  
+**Dependencies:** PR #17  
+**Status:** ✅ Completed
+
+### Overview
+Change the default route ("/") to render CampaignsListPage instead of UploadPage, making the campaigns list the landing page. Move campaign creation to a dedicated "/create" route.
+
+### Tasks
+- [x] **26.1** Update App.jsx routing
+  - Change "/" route to render CampaignsListPage
+  - Move UploadPage to "/create" route
+  - Ensure all existing routes remain functional
+
+- [x] **26.2** Update Header navigation
+  - Update "New Campaign" link to point to "/create"
+  - Update "View All Campaigns" link to point to "/"
+  - Ensure navigation reflects new route structure
+
+- [x] **26.3** Update any hardcoded route references
+  - Check all components for "/" references that should point to "/create"
+  - Update success page navigation if needed
+  - Update any redirects or navigation calls
+
+**Acceptance Criteria:**
+- ✅ "/" route displays CampaignsListPage
+- ✅ "/create" route displays UploadPage
+- ✅ Header navigation links work correctly
+- ✅ All existing functionality preserved
+- ✅ No broken links or navigation issues
+
+**Files Modified:**
+- frontend/src/App.jsx
+- frontend/src/components/Header.jsx
+- frontend/src/pages/SuccessPage.jsx
+- frontend/src/pages/CampaignsListPage.jsx
+- frontend/src/pages/HistoryPage.jsx
+
+---
+
+## PR #27: Modern Professional UI Redesign with HiBid Branding
+**Branch:** `feature/modern-ui-redesign`  
+**Time Estimate:** 6 hours  
+**Dependencies:** PR #26  
+**Status:** ✅ Completed
+
+### Overview
+Complete UI redesign to create a modern, professional application optimized for marketing teams. Implement HiBid brand colors (vibrant blue, light gray/white, dark gray), dashboard-style overview, card-based layouts, and enhanced user experience with quick actions, search, filters, and bulk operations.
+
+### Tasks
+- [x] **27.1** Update Tailwind configuration with HiBid brand colors
+  - Define primary blue color (matching HiBid logo)
+  - Define light gray/white colors (matching logo)
+  - Define dark gray for text
+  - Add gradient utilities for subtle depth effects
+  - Update color palette throughout application
+
+- [x] **27.2** Redesign CampaignsListPage with dashboard overview
+  - Add stats cards at top (total campaigns, by status, recent activity)
+  - Implement search bar with real-time filtering
+  - Add advanced filters (status, date range, advertiser)
+  - Convert to card-based grid layout
+  - Add quick actions on each campaign card
+  - Add bulk operations (select multiple, bulk actions)
+  - Improve visual hierarchy and spacing
+  - Created StatsCards component (extracted for file length compliance)
+  - Created CampaignsSearchBar component (extracted for file length compliance)
+
+- [x] **27.3** Redesign Header component
+  - Update with HiBid branding (logo integration if available)
+  - Modern navigation design
+  - Improved spacing and typography
+  - Add quick action buttons (Create Campaign prominently)
+  - Professional color scheme
+
+- [x] **27.4** Redesign UploadPage (Create Campaign)
+  - Streamlined form layout for fast campaign creation
+  - Improved visual feedback
+  - Better file upload UI
+  - Clear step indicators or progress
+  - Modern form styling
+
+- [x] **27.5** Redesign PreviewPage
+  - Enhanced preview controls
+  - Better campaign details sidebar
+  - Improved action buttons
+  - Modern card-based layout for details
+
+- [x] **27.6** Redesign all components for consistency
+  - Update CampaignDetails component
+  - Update ApprovalButtons component
+  - Update FileUpload component
+  - Update FormInput component
+  - Update Loading component
+  - Update Toast component
+  - Consistent spacing, typography, and colors
+
+- [x] **27.7** Enhance empty states and loading states
+  - Professional empty state designs
+  - Improved loading spinners and skeletons
+  - Better error state displays
+  - Consistent messaging
+
+- [x] **27.8** Add animations and transitions
+  - Smooth transitions between states
+  - Hover effects on interactive elements
+  - Loading animations
+  - Subtle micro-interactions
+
+- [x] **27.9** Improve typography and spacing
+  - Professional font stack (system fonts optimized)
+  - Consistent spacing scale
+  - Better text hierarchy
+  - Improved readability
+
+- [x] **27.10** Mobile responsiveness
+  - Ensure all new designs work on mobile
+  - Responsive grid layouts
+  - Mobile-friendly navigation
+  - Touch-friendly interactions
+
+**Acceptance Criteria:**
+- ✅ HiBid brand colors applied throughout application
+- ✅ Dashboard-style overview on campaigns list
+- ✅ Card-based layout for campaigns
+- ✅ Search and filters functional
+- ✅ Bulk operations available
+- ✅ Fast campaign creation flow
+- ✅ All components redesigned consistently
+- ✅ Professional, modern appearance
+- ✅ Intuitive for marketing teams
+- ✅ Mobile responsive
+- ✅ Smooth animations and transitions
+
+**Files Modified:**
+- frontend/tailwind.config.js (add HiBid brand colors, gradients, shadows)
+- frontend/src/index.css (update base styles with HiBid colors)
+- frontend/src/pages/CampaignsListPage.jsx (complete redesign with dashboard, stats, search)
+- frontend/src/pages/UploadPage.jsx (redesign with modern styling)
+- frontend/src/pages/PreviewPage.jsx (redesign with enhanced controls)
+- frontend/src/components/Header.jsx (redesign with modern navigation and HiBid branding)
+- frontend/src/components/CampaignDetails.jsx (redesign with HiBid colors)
+- frontend/src/components/ApprovalButtons.jsx (redesign with modern styling)
+- frontend/src/components/FileUpload.jsx (redesign with HiBid colors)
+- frontend/src/components/FormInput.jsx (redesign with HiBid colors)
+- frontend/src/components/Loading.jsx (redesign with HiBid colors)
+- frontend/src/components/Toast.jsx (redesign with HiBid colors)
+
+**Files Created:**
+- frontend/src/components/StatsCards.jsx (new component - extracted for file length compliance)
+- frontend/src/components/CampaignsSearchBar.jsx (new component - extracted for file length compliance)
+
+**Design References:**
+- Mailchimp (email campaign management)
+- HubSpot Marketing Hub (dashboard overview)
+- Notion (clean, modern interface)
+- Linear (fast, intuitive design)
+- Stripe Dashboard (professional, data-dense)
+
+**Technical Notes:**
+- Use HiBid brand colors: vibrant blue (primary), light gray/white (secondary), dark gray (text)
+- Implement subtle gradients for depth (matching logo aesthetic)
+- Card-based layout for better visual scanning
+- Dashboard stats for quick overview
+- Search and filters for efficient campaign management
+- Bulk operations for productivity
+- Fast creation flow as top priority

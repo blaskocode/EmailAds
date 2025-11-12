@@ -16,7 +16,8 @@ function App() {
         <Router>
           <Layout>
             <Routes>
-              <Route path="/" element={<UploadPage />} />
+              <Route path="/" element={<CampaignsListPage />} />
+              <Route path="/create" element={<UploadPage />} />
               <Route path="/campaigns" element={<CampaignsListPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/review/:campaignId" element={<ReviewPage />} />

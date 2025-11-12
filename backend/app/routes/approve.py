@@ -45,6 +45,13 @@ async def approve_campaign(
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
+        # Prevent re-approval or re-rejection of already approved campaigns
+        if campaign.status == 'approved':
+            raise HTTPException(
+                status_code=400,
+                detail="Campaign has already been approved and cannot be approved or rejected again."
+            )
+        
         if request.decision == 'approve':
             # Generate final HTML (production-ready)
             ai_results = campaign.ai_processing_data.get('ai_results') if campaign.ai_processing_data else None

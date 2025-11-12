@@ -4,34 +4,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import ScheduleModal from '../components/ScheduleModal';
+import StatsCards from '../components/StatsCards';
+import CampaignsSearchBar from '../components/CampaignsSearchBar';
 import { listCampaigns, resetCampaign, scheduleCampaign, cancelSchedule } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'uploaded', label: 'Uploaded' },
-  { value: 'processed', label: 'Processed' },
-  { value: 'ready', label: 'Ready' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'rejected', label: 'Rejected' }
-];
-
-const REVIEW_STATUS_COLORS = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  reviewed: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
-};
-
-const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-gray-800',
-  uploaded: 'bg-blue-100 text-blue-800',
-  processed: 'bg-yellow-100 text-yellow-800',
-  ready: 'bg-green-100 text-green-800',
-  approved: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-red-100 text-red-800'
-};
+import {
+  STATUS_OPTIONS,
+  STATUS_COLORS,
+  REVIEW_STATUS_COLORS,
+  formatDate,
+  truncateText,
+  getTimeUntilScheduled
+} from '../utils/campaignsListUtils';
 
 function CampaignsListPage() {
   const navigate = useNavigate();
@@ -41,6 +26,7 @@ function CampaignsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [total, setTotal] = useState(0);
   const [limit] = useState(100);
   const [offset, setOffset] = useState(0);
@@ -50,6 +36,7 @@ function CampaignsListPage() {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [scheduleDateTime, setScheduleDateTime] = useState('');
   const [cancelingId, setCancelingId] = useState(null);
+  const [stats, setStats] = useState({ total: 0, approved: 0, rejected: 0, ready: 0 });
 
   useEffect(() => {
     loadCampaigns();
@@ -69,9 +56,22 @@ function CampaignsListPage() {
         params.status = statusFilter;
       }
       
-      const response = await listCampaigns(params);
+      const response = await listCampaigns({ ...params, include_stats: true });
       setCampaigns(response.campaigns || []);
       setTotal(response.total || 0);
+      
+      // Calculate stats from response or campaigns
+      if (response.stats) {
+        setStats(response.stats);
+      } else {
+        const campaignStats = {
+          total: response.total || 0,
+          approved: (response.campaigns || []).filter(c => c.status === 'approved').length,
+          rejected: (response.campaigns || []).filter(c => c.status === 'rejected').length,
+          ready: (response.campaigns || []).filter(c => c.status === 'ready' || c.status === 'processed').length,
+        };
+        setStats(campaignStats);
+      }
     } catch (err) {
       console.error('Error loading campaigns:', err);
       const errorMessage = err.response?.data?.detail || 
@@ -89,6 +89,23 @@ function CampaignsListPage() {
     setStatusFilter(e.target.value);
     setOffset(0); // Reset to first page when filter changes
   };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setOffset(0); // Reset to first page when search changes
+  };
+
+  // Filter campaigns by search query
+  const filteredCampaigns = campaigns.filter(campaign => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (campaign.campaign_name || '').toLowerCase().includes(query) ||
+      (campaign.advertiser_name || '').toLowerCase().includes(query) ||
+      (campaign.id || '').toLowerCase().includes(query) ||
+      (campaign.feedback || '').toLowerCase().includes(query)
+    );
+  });
 
   const handleViewCampaign = (campaignId, status, e) => {
     if (e) {
@@ -128,27 +145,6 @@ function CampaignsListPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
-  const truncateText = (text, maxLength = 50) => {
-    if (!text) return '—';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
 
   const handleScheduleClick = (campaign, e) => {
     e.stopPropagation();
@@ -207,26 +203,6 @@ function CampaignsListPage() {
     }
   };
 
-  const getTimeUntilScheduled = (scheduledAt) => {
-    if (!scheduledAt) return null;
-    try {
-      const scheduled = new Date(scheduledAt);
-      const now = new Date();
-      const diff = scheduled - now;
-      
-      if (diff <= 0) return 'Past due';
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (days > 0) return `${days}d ${hours}h`;
-      if (hours > 0) return `${hours}h ${minutes}m`;
-      return `${minutes}m`;
-    } catch {
-      return null;
-    }
-  };
 
   if (loading && campaigns.length === 0) {
     return (
@@ -239,39 +215,17 @@ function CampaignsListPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              All Campaigns
-            </h2>
-            <p className="text-gray-600">
-              {total} {total === 1 ? 'campaign' : 'campaigns'} total
-            </p>
-          </div>
-          
-          {/* Status Filter */}
-          <div className="flex items-center gap-4">
-            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
-              Filter by Status:
-            </label>
-            <select
-              id="status-filter"
-              value={statusFilter}
-              onChange={handleStatusFilterChange}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {STATUS_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-6 lg:px-6 max-w-7xl">
+      {/* Dashboard Stats Cards */}
+      <StatsCards stats={stats} />
+
+      {/* Header with Search and Filters */}
+      <CampaignsSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
+      />
 
       {/* Error State */}
       {error && campaigns.length === 0 && (
@@ -290,11 +244,11 @@ function CampaignsListPage() {
       )}
 
       {/* Campaigns Table */}
-      {campaigns.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      {filteredCampaigns.length > 0 ? (
+        <div className="bg-white rounded-xl shadow-hibid overflow-hidden border border-hibid-gray-200">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-hibid-gray-200">
+              <thead className="bg-hibid-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campaign Name
@@ -319,23 +273,23 @@ function CampaignsListPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {campaigns.map((campaign) => (
+              <tbody className="bg-white divide-y divide-hibid-gray-200">
+                {filteredCampaigns.map((campaign) => (
                   <tr
                     key={campaign.id}
                     onClick={() => handleViewCampaign(campaign.id, campaign.status, null)}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="hover:bg-hibid-gray-50 cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-hibid-gray-900">
                         {campaign.campaign_name || 'Untitled Campaign'}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-hibid-gray-500 mt-1">
                         ID: {campaign.id.substring(0, 8)}...
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-hibid-gray-900">
                         {campaign.advertiser_name || '—'}
                       </div>
                     </td>
@@ -361,14 +315,14 @@ function CampaignsListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-hibid-gray-900">
                         {formatDate(campaign.created_at)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {campaign.scheduling_status === 'scheduled' && campaign.scheduled_at ? (
                         <div className="text-sm">
-                          <div className="text-gray-900 font-medium">
+                          <div className="text-hibid-gray-900 font-medium">
                             {formatDate(campaign.scheduled_at)}
                           </div>
                           <div className="text-xs text-purple-600 mt-1">
@@ -376,11 +330,11 @@ function CampaignsListPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-400">—</div>
+                        <div className="text-sm text-hibid-gray-400">—</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600 max-w-xs">
+                      <div className="text-sm text-hibid-gray-600 max-w-xs">
                         {truncateText(campaign.feedback, 60)}
                       </div>
                     </td>
@@ -425,7 +379,7 @@ function CampaignsListPage() {
                         )}
                         <button
                           onClick={(e) => handleViewCampaign(campaign.id, campaign.status, e)}
-                          className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                          className="px-3 py-1 text-xs bg-hibid-blue-100 text-hibid-blue-800 rounded hover:bg-hibid-blue-200 transition-colors"
                         >
                           {campaign.status === 'ready' || campaign.status === 'processed' 
                             ? 'Preview' 
@@ -443,23 +397,23 @@ function CampaignsListPage() {
           
           {/* Pagination */}
           {total > limit && (
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div className="bg-hibid-gray-50 px-6 py-4 border-t border-hibid-gray-200">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing {offset + 1} to {Math.min(offset + limit, total)} of {total} campaigns
+                <div className="text-sm text-hibid-gray-700">
+                  Showing {offset + 1} to {Math.min(offset + limit, filteredCampaigns.length)} of {filteredCampaigns.length} {searchQuery ? 'filtered' : ''} campaigns
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setOffset(Math.max(0, offset - limit))}
                     disabled={offset === 0}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm border border-hibid-gray-300 rounded-lg hover:bg-hibid-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setOffset(offset + limit)}
-                    disabled={offset + limit >= total}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={offset + limit >= filteredCampaigns.length}
+                    className="px-4 py-2 text-sm border border-hibid-gray-300 rounded-lg hover:bg-hibid-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>
@@ -469,17 +423,24 @@ function CampaignsListPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white rounded-xl shadow-hibid p-12 border border-hibid-gray-200">
           <div className="text-center">
-            <p className="text-gray-600 text-lg">
-              {statusFilter 
+            <div className="w-16 h-16 bg-hibid-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-hibid-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p className="text-hibid-gray-600 text-lg font-medium mb-2">
+              {searchQuery 
+                ? `No campaigns found matching "${searchQuery}"`
+                : statusFilter 
                 ? `No campaigns found with status "${statusFilter}"`
                 : 'No campaigns found. Create your first campaign to get started!'}
             </p>
-            {!statusFilter && (
+            {!statusFilter && !searchQuery && (
               <button
-                onClick={() => navigate('/')}
-                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={() => navigate('/create')}
+                className="mt-4 px-6 py-2 bg-gradient-hibid text-white rounded-lg hover:shadow-hibid-lg transition-all duration-200 font-semibold"
               >
                 Create Campaign
               </button>
@@ -489,56 +450,19 @@ function CampaignsListPage() {
       )}
 
       {/* Schedule Modal */}
-      {showScheduleModal && selectedCampaign && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Schedule Campaign
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Schedule "{selectedCampaign.campaign_name}" for future sending.
-            </p>
-            
-            <div className="mb-4">
-              <label htmlFor="schedule-datetime" className="block text-sm font-medium text-gray-700 mb-2">
-                Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                id="schedule-datetime"
-                value={scheduleDateTime}
-                onChange={(e) => setScheduleDateTime(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Select a future date and time
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowScheduleModal(false);
-                  setSelectedCampaign(null);
-                  setScheduleDateTime('');
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleScheduleSubmit}
-                disabled={!scheduleDateTime || schedulingId === selectedCampaign.id}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {schedulingId === selectedCampaign.id ? 'Scheduling...' : 'Schedule'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ScheduleModal
+        show={showScheduleModal}
+        campaign={selectedCampaign}
+        scheduleDateTime={scheduleDateTime}
+        onDateTimeChange={setScheduleDateTime}
+        onSubmit={handleScheduleSubmit}
+        onCancel={() => {
+          setShowScheduleModal(false);
+          setSelectedCampaign(null);
+          setScheduleDateTime('');
+        }}
+        isScheduling={schedulingId === selectedCampaign?.id}
+      />
     </div>
   );
 }

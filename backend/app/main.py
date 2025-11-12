@@ -89,7 +89,7 @@ app.add_middleware(
 )
 
 # Include API routers
-from app.routes import upload, process, generate, preview, approve, download, campaign, edit, schedule, review
+from app.routes import upload, process, generate, preview, approve, download, campaign, edit, schedule, review, performance, recommendations
 app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
 app.include_router(process.router, prefix="/api/v1", tags=["process"])
 app.include_router(generate.router, prefix="/api/v1", tags=["generate"])
@@ -100,6 +100,8 @@ app.include_router(campaign.router, prefix="/api/v1", tags=["campaign"])
 app.include_router(edit.router, prefix="/api/v1", tags=["edit"])
 app.include_router(schedule.router, prefix="/api/v1", tags=["schedule"])
 app.include_router(review.router, prefix="/api/v1", tags=["review"])
+app.include_router(performance.router, prefix="/api/v1", tags=["performance"])
+app.include_router(recommendations.router, prefix="/api/v1", tags=["recommendations"])
 
 
 @app.get("/health")

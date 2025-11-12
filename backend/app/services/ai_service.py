@@ -2,7 +2,7 @@
 AI service for OpenAI GPT-4 and GPT-4 Vision integration
 """
 from openai import OpenAI
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import json
 import asyncio
 import logging
@@ -250,4 +250,99 @@ async def process_images_parallel(
         }
     
     return {"logo": None, "hero_images": []}
+
+
+async def process_text_content_with_history(
+    subject_line: Optional[str],
+    body_copy: Optional[str],
+    cta_text: Optional[str] = None,
+    historical_examples: Optional[List[Dict[str, Any]]] = None
+) -> Dict:
+    """
+    Process text content with GPT-4 using historical high-performing examples as context
+    
+    Args:
+        subject_line: Original subject line
+        body_copy: Original body copy
+        cta_text: Original CTA text
+        historical_examples: List of high-performing campaign examples
+        
+    Returns:
+        Dictionary with optimized content aligned with proven patterns
+    """
+    try:
+        # Build historical context if available
+        historical_context = ""
+        if historical_examples and len(historical_examples) > 0:
+            historical_context = "\n\nHIGH-PERFORMING EXAMPLES FROM PAST CAMPAIGNS:\n"
+            for idx, example in enumerate(historical_examples[:5], 1):  # Top 5 examples
+                historical_context += f"\nExample {idx} (Performance Score: {example.get('performance_score', 0):.2f}):\n"
+                if example.get('subject_line'):
+                    historical_context += f"  Subject: {example['subject_line']}\n"
+                if example.get('preview_text'):
+                    historical_context += f"  Preview: {example['preview_text']}\n"
+                if example.get('cta_text'):
+                    historical_context += f"  CTA: {example['cta_text']}\n"
+            historical_context += "\nUse these patterns as inspiration while creating fresh, unique content.\n"
+        
+        prompt = f"""You are an email marketing expert. Extract and optimize the following campaign content:{historical_context}
+
+INPUT:
+Subject: {subject_line or 'Not provided'}
+Body: {body_copy or 'Not provided'}
+CTA: {cta_text or 'Not provided'}
+
+TASKS:
+1. Generate 3 subject line variations (max 50 chars each) that align with proven high-performing patterns
+2. Create preview text (50-90 chars) that complements the best subject line
+3. Structure body copy into:
+   - Headline (5-10 words, compelling and clear)
+   - Body (2-3 short paragraphs, max 150 words total)
+   - CTA text (2-4 words, action-oriented, similar to high-performing examples)
+4. Suggest improvements for clarity and urgency
+
+OUTPUT FORMAT: JSON only, no markdown, no code blocks
+{{
+  "subject_lines": ["variation 1", "variation 2", "variation 3"],
+  "preview_text": "preview text here",
+  "headline": "compelling headline",
+  "body_paragraphs": ["paragraph 1", "paragraph 2"],
+  "cta_text": "action text",
+  "suggestions": "brief improvement suggestions"
+}}"""
+
+        # Run in thread pool since OpenAI client is synchronous
+        client = get_openai_client()
+        response = await asyncio.to_thread(
+            client.chat.completions.create,
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an email marketing expert. Always respond with valid JSON only. Use historical examples as inspiration but create fresh, unique content."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=800,
+            response_format={"type": "json_object"}
+        )
+        
+        content = response.choices[0].message.content
+        result = json.loads(content)
+        
+        logger.info("Text content processed with historical context successfully")
+        return result
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error in text processing with history: {e}")
+        # Fallback to basic structure
+        return {
+            "subject_lines": [subject_line or "Email Campaign"] * 3,
+            "preview_text": "Check out our latest offer!" if not subject_line else subject_line[:90],
+            "headline": "Special Offer" if not body_copy else body_copy.split('.')[0][:50],
+            "body_paragraphs": [body_copy or "Thank you for your interest."],
+            "cta_text": cta_text or "Learn More",
+            "suggestions": "Content processed with fallback"
+        }
+    except Exception as e:
+        logger.error(f"Error processing text content with history: {e}")
+        raise
 
