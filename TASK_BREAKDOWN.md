@@ -15,7 +15,8 @@ Phase 3: UI & Approval (20-28h)→ 3 PRs
 Phase 4: Polish (28-36h)       → 2 PRs
 Phase 5: Post-MVP (36h+)        → 7 PRs
 Phase 6: P1 Features            → 4 PRs
-                        TOTAL: 24 PRs
+Phase 7: P2 Features            → 1 PR
+                        TOTAL: 25 PRs
 ```
 
 ---
@@ -860,6 +861,9 @@ PR #1 (Setup)
                                                     │
                                                     ↓
                                             PR #23 (Scheduling)
+                                                    │
+                                                    ↓
+                                            PR #25 (AI Recommendations)
 ```
 
 ---
@@ -891,10 +895,11 @@ Use this to track actual time vs. estimates:
 | #19| 0.5h | | | ✅ Completed |
 | #20| 1h | | | ✅ Completed |
 | #21| 4h | | | ✅ Completed |
-| #22| 2h | | | ⏳ Proposed |
-| #23| 5h | | | ⏳ Proposed |
-| #24| 4h | | | ⏳ Proposed |
-| **Total** | **62.5h** | | | |
+| #22| 2h | | | ✅ Completed |
+| #23| 5h | | | ✅ Completed |
+| #24| 4h | | | ✅ Completed |
+| #25| 8h | | | ⏳ Proposed |
+| **Total** | **70.5h** | | | |
 
 ---
 
@@ -1409,6 +1414,135 @@ Use this to track actual time vs. estimates:
 
 ---
 
+# PHASE 7: P2 FEATURES (Nice-to-Have)
+
+## PR #25: AI-Based Content Suggestions from Past Performance
+**Branch:** `feature/ai-content-suggestions`  
+**Time Estimate:** 8 hours  
+**Dependencies:** PR #17, PR #24  
+**Status:** ⏳ Proposed
+
+### Overview
+Implement AI-based content suggestions that learn from past campaign performance to provide personalized recommendations. This addresses the P2 requirement gap where current AI suggestions are generated fresh per campaign without leveraging historical data.
+
+### Tasks
+- [ ] **25.1** Backend: Campaign performance tracking
+  - Add performance metrics fields to campaigns table
+    - `open_rate` (optional, decimal)
+    - `click_rate` (optional, decimal)
+    - `conversion_rate` (optional, decimal)
+    - `performance_score` (optional, decimal, calculated)
+    - `performance_timestamp` (optional, datetime)
+  - Create migration script for new fields
+  - Update Campaign model to include performance fields
+  - Add performance update endpoint (POST /api/v1/campaigns/{campaign_id}/performance)
+    - Accept performance metrics from external systems
+    - Calculate performance score
+    - Update campaign record
+
+- [ ] **25.2** Backend: Analytics aggregation service
+  - Create analytics service to aggregate campaign performance
+  - Calculate average performance by:
+    - Subject line patterns
+    - Preview text patterns
+    - CTA text patterns
+    - Image count/type
+    - Advertiser category (if available)
+  - Store aggregated analytics in database (new `campaign_analytics` table)
+  - Update analytics periodically (daily batch job or on-demand)
+
+- [ ] **25.3** Backend: Recommendation engine
+  - Create recommendation service
+  - Analyze current campaign content
+  - Match against historical high-performing campaigns
+  - Generate personalized suggestions based on:
+    - Similar subject line patterns that performed well
+    - Successful preview text styles
+    - Effective CTA text variations
+    - Optimal image count/arrangement
+  - Return ranked suggestions with confidence scores
+
+- [ ] **25.4** Backend: Enhanced AI service integration
+  - Update AI service to accept historical context
+  - Pass top-performing examples to GPT-4 prompts
+  - Generate suggestions that align with proven patterns
+  - Combine AI creativity with data-driven insights
+  - Fallback to standard AI suggestions if no historical data available
+
+- [ ] **25.5** Backend: Recommendations endpoint
+  - POST /api/v1/campaigns/{campaign_id}/recommendations
+  - Accept current campaign content
+  - Return personalized suggestions:
+    - Subject line recommendations (top 3-5)
+    - Preview text recommendations (top 3-5)
+    - CTA text recommendations (top 3-5)
+    - Content structure suggestions
+    - Image optimization suggestions
+  - Include confidence scores and reasoning
+
+- [ ] **25.6** Frontend: Performance metrics display
+  - Add performance section to CampaignDetails component
+  - Display performance metrics (if available)
+  - Show performance score with visual indicator
+  - Add "View Performance" button for approved campaigns
+  - Performance dashboard (optional, can be separate page)
+
+- [ ] **25.7** Frontend: Recommendations UI
+  - Add "Get Recommendations" button in PreviewPage
+  - Create recommendations panel/modal
+  - Display personalized suggestions with confidence scores
+  - Show reasoning (e.g., "Based on 12 similar high-performing campaigns")
+  - Allow applying suggestions with one click
+  - Show comparison: current vs. recommended
+
+- [ ] **25.8** Frontend: Analytics integration (optional)
+  - Add analytics input form (for manual entry or future API integration)
+  - Allow campaign managers to update performance metrics
+  - Display analytics trends over time
+  - Show top-performing campaigns
+
+- [ ] **25.9** Backend: Batch analytics job (optional)
+  - Create background job to update analytics daily
+  - Aggregate performance data
+  - Calculate trends and patterns
+  - Store in analytics table for fast retrieval
+
+**Acceptance Criteria:**
+- ✅ Campaign performance metrics can be stored and retrieved
+- ✅ Analytics service aggregates historical performance data
+- ✅ Recommendation engine generates personalized suggestions
+- ✅ Suggestions are based on past high-performing campaigns
+- ✅ Frontend displays recommendations with confidence scores
+- ✅ Users can apply recommendations with one click
+- ✅ System gracefully handles cases with no historical data
+- ✅ Performance metrics are displayed for campaigns
+
+**Files Created:**
+- backend/app/services/analytics_service.py
+- backend/app/services/recommendation_service.py
+- backend/app/routes/analytics.py
+- backend/app/routes/recommendations.py
+- frontend/src/components/RecommendationsPanel.jsx
+- frontend/src/components/PerformanceMetrics.jsx
+
+**Files Modified:**
+- backend/app/database.py (add performance fields, analytics table)
+- backend/app/models/campaign.py (add performance fields)
+- backend/app/models/schemas.py (add performance schemas)
+- backend/app/services/ai_service.py (integrate historical context)
+- frontend/src/pages/PreviewPage.jsx (add recommendations UI)
+- frontend/src/components/CampaignDetails.jsx (add performance display)
+- frontend/src/services/api.js (add recommendations endpoints)
+
+**Technical Notes:**
+- Performance metrics can be manually entered or integrated via API
+- Recommendation engine uses pattern matching and similarity scoring
+- GPT-4 prompts enhanced with top-performing examples as context
+- Analytics aggregation runs on-demand or via scheduled job
+- System works even with minimal historical data (graceful degradation)
+
+---
+
 **Document Status:** Ready for development  
-**Last Updated:** November 2025  
-**Version:** 1.3
+**Last Updated:** November 12, 2025  
+**Version:** 1.4
