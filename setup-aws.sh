@@ -207,6 +207,12 @@ aws iam attach-role-policy \
     --role-name ${PROJECT_NAME}-ec2-role \
     --policy-arn arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
 
+# Attach SSM policy for Session Manager access
+log_info "Attaching SSM policy for Session Manager access"
+aws iam attach-role-policy \
+    --role-name ${PROJECT_NAME}-ec2-role \
+    --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
 # Create instance profile
 log_info "Creating instance profile"
 if aws iam create-instance-profile \
