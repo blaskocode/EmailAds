@@ -1,14 +1,23 @@
 # Active Context: HiBid Email MVP
 
-**Last Updated:** November 12, 2025  
-**Current Status:** MVP Complete - Production Deployed ✅ | P2 Features Complete ✅ | All Features Complete ✅ | UX Improvements Complete ✅
+**Last Updated:** November 13, 2025  
+**Current Status:** MVP Complete - Production Deployed ✅ | P2 Features Complete ✅ | All Features Complete ✅ | UX Improvements Complete ✅ | Auto Stats Generation ✅
 
 ---
 
 ## Current Work Focus
 
 ### Recently Completed
-1. ✅ **PR #26: Change Default Route to Campaigns List** - COMPLETED
+1. ✅ **Automatic Performance Statistics Generation** - COMPLETED
+   - Added `generate_single_campaign_performance()` function to test_data_generator.py
+   - Modified approve.py endpoint to automatically generate stats when campaign is approved
+   - Stats are generated immediately upon approval (open_rate, click_rate, conversion_rate, performance_score)
+   - Randomly assigns campaigns to performance tiers (high/medium/low: 35%/45%/20%)
+   - Stats are stored automatically so AI recommendations can find them
+   - Error handling ensures approval doesn't fail if stats generation fails
+   - Deployed to production instance i-05f785a26aaaf9f30
+
+2. ✅ **PR #26: Change Default Route to Campaigns List** - COMPLETED
    - Changed default route "/" to render CampaignsListPage
    - Moved UploadPage to "/create" route
    - Updated all navigation links in Header, SuccessPage, CampaignsListPage, HistoryPage
@@ -68,17 +77,21 @@
    - All P2 features now complete (PR #25)
    - System can now provide AI-based recommendations based on historical campaign performance
 
-2. ✅ **Production Deployment to AWS EC2**
-   - Fixed S3 lifecycle policy JSON format (ID vs Id)
-   - Updated frontend Dockerfile for production build with nginx
-   - Fixed frontend API URL configuration (was using localhost instead of production URL)
+2. ✅ **Production Deployment to AWS EC2 (Current)**
+   - Deployed to new EC2 instance: i-05f785a26aaaf9f30 (t3.medium)
+   - Public IP: 98.84.19.141 (Note: Not Elastic IP - will change if instance restarts)
+   - S3 Bucket: hibid-email-mvp-assets-1762999536
+   - Deployment Method: AWS Systems Manager (SSM) Run Command (SSH unavailable)
+   - Frontend: http://98.84.19.141:3000
+   - Backend: http://98.84.19.141:8000
+   - CORS configured and working
+   - All containers running and healthy
+   - Deployment guide created: DEPLOYMENT_SUCCESS_GUIDE.md
+
+3. ✅ **Previous Production Deployment (Archived)**
    - Deployed to AWS EC2 instance (t3.medium) with Elastic IP: 44.212.209.159
    - Configured S3 bucket: hibid-email-mvp-assets-1762970982
-   - Set up production environment variables and .env file
-   - Frontend and backend containers running successfully
-   - Application accessible at http://44.212.209.159:3000 (frontend) and http://44.212.209.159:8000 (backend)
-   - All CORS and network connectivity issues resolved
-   - Production deployment complete and verified
+   - Network connectivity issues prevented access - replaced with new instance
 
 2. ✅ **PR #24: Editorial Review Interface**
    - Backend: Added review_status and reviewer_notes fields to database with migration

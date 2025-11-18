@@ -1,0 +1,26 @@
+HiBid Email MVP - Deployment Summary (New Instance)
+Generated: Wed Nov 12 20:30:40 CST 2025
+
+AWS Resources:
+- S3 Bucket: hibid-email-mvp-assets-1762999536
+- IAM Role: hibid-email-mvp-ec2-role
+- Security Group: sg-0f925667ae6070c4a
+- EC2 Instance: i-05f785a26aaaf9f30
+- Public IP: 98.84.19.141
+- Note: Elastic IP allocation failed (limit reached), using public IP
+
+Application Status: ✅ RUNNING
+
+Application URLs:
+- Frontend: http://98.84.19.141:3000
+- Backend: http://98.84.19.141:8000
+- Backend API: http://98.84.19.141:8000/api/v1
+- API Docs: http://98.84.19.141:8000/docs
+- Health Check: http://98.84.19.141:8000/health
+
+Container Status:
+- Backend: Running and healthy
+- Frontend: Running on port 3000
+
+Note: The public IP (98.84.19.141) will change if the instance stops/restarts.
+To get a static IP, release an unused Elastic IP and associate it with this instance.

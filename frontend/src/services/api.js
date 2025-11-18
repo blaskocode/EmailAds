@@ -372,6 +372,16 @@ export const getRecommendations = async (campaignId) => {
 };
 
 /**
+ * Generate campaign data from a natural language prompt
+ * @param {string} prompt - Natural language description of the campaign
+ * @returns {Promise} Generated campaign data (all form fields)
+ */
+export const generateCampaignFromPrompt = async (prompt) => {
+  const response = await api.post('/campaigns/generate-from-prompt', { prompt });
+  return response.data;
+};
+
+/**
  * Health check
  * @returns {Promise} Health status
  */

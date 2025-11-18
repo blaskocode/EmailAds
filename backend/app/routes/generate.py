@@ -5,9 +5,10 @@ from fastapi import APIRouter, HTTPException, Depends
 import logging
 import time
 
-from app.models.schemas import PreviewResponse
+from app.models.schemas import PreviewResponse, PromptGenerateRequest, PromptGenerateResponse
 from app.services.proof_service import generate_proof, update_campaign_with_proof
 from app.services.campaign_service import get_campaign
+from app.services.ai_service import generate_campaign_from_prompt
 from app.database import get_db
 
 logger = logging.getLogger(__name__)
@@ -145,5 +146,56 @@ async def regenerate_campaign_proof(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to regenerate proof: {str(e)}"
+        )
+
+
+@router.post("/campaigns/generate-from-prompt", response_model=PromptGenerateResponse)
+async def generate_campaign_from_prompt_endpoint(
+    request: PromptGenerateRequest
+):
+    """
+    Generate campaign data from a natural language prompt using AI
+    
+    This endpoint:
+    1. Takes a natural language description of a campaign
+    2. Uses GPT-4o-mini to extract structured campaign data
+    3. Returns all form fields ready for auto-population
+    
+    Example prompts:
+    - "Create a campaign for Acme Corp's Black Friday sale. 30% off all products. Use code BLACKFRIDAY30."
+    - "I need an email campaign for TechStart's new product launch. The product is called CloudSync, a cloud storage solution for businesses."
+    """
+    try:
+        # Validate prompt length
+        if not request.prompt or len(request.prompt.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+        
+        if len(request.prompt) > 2000:
+            raise HTTPException(status_code=400, detail="Prompt exceeds maximum length of 2000 characters")
+        
+        # Generate campaign data from prompt
+        result = await generate_campaign_from_prompt(request.prompt.strip())
+        
+        logger.info(f"Campaign generated from prompt: {result.get('campaign_name', 'Unknown')}")
+        
+        # Return structured response
+        return PromptGenerateResponse(
+            campaign_name=result.get("campaign_name", ""),
+            advertiser_name=result.get("advertiser_name", ""),
+            subject_line=result.get("subject_line", ""),
+            preview_text=result.get("preview_text", ""),
+            body_copy=result.get("body_copy", ""),
+            cta_text=result.get("cta_text", ""),
+            cta_url=result.get("cta_url", "#"),
+            footer_text=result.get("footer_text", "")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating campaign from prompt: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate campaign from prompt: {str(e)}"
         )
 

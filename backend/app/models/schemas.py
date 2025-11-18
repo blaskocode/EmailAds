@@ -99,6 +99,23 @@ class CampaignListResponse(BaseModel):
     stats: Optional[Dict[str, int]] = None  # Quick stats by status
 
 
+class PromptGenerateRequest(BaseModel):
+    """Request schema for generating campaign from prompt"""
+    prompt: str = Field(..., min_length=1, max_length=2000, description="Natural language description of the campaign")
+
+
+class PromptGenerateResponse(BaseModel):
+    """Response schema for prompt-based campaign generation"""
+    campaign_name: str
+    advertiser_name: str
+    subject_line: str
+    preview_text: str
+    body_copy: str
+    cta_text: str
+    cta_url: str
+    footer_text: str
+
+
 class CampaignStatusResponse(BaseModel):
     """Response schema for campaign status check"""
     campaign_id: str

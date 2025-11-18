@@ -12,6 +12,7 @@ from app.services.proof_service import generate_proof
 from app.services.template_service import generate_email_from_campaign
 from app.services.s3_service import s3_service
 from app.services.file_service import generate_s3_key
+from app.services.test_data_generator import generate_single_campaign_performance
 from app.database import get_db
 
 logger = logging.getLogger(__name__)
@@ -96,6 +97,20 @@ async def approve_campaign(
                 html_s3_path=final_html_s3_url,
                 feedback=request.feedback
             )
+            
+            # Refresh campaign to get updated status
+            campaign = await get_campaign(campaign_id, conn=conn)
+            
+            # Automatically generate performance statistics for AI recommendations
+            try:
+                performance_data = await generate_single_campaign_performance(conn, campaign)
+                if performance_data:
+                    logger.info(f"Generated performance stats for campaign {campaign_id}: {performance_data.get('tier', 'unknown')} performer (score: {performance_data.get('performance_score', 0):.3f})")
+                else:
+                    logger.info(f"Performance stats not generated for campaign {campaign_id} (may already exist or not approved)")
+            except Exception as e:
+                # Don't fail approval if stats generation fails - just log the error
+                logger.warning(f"Failed to generate performance stats for campaign {campaign_id}: {e}", exc_info=True)
             
             logger.info(f"Campaign {campaign_id} approved. Final HTML stored at: {final_html_s3_url}")
             if request.feedback:

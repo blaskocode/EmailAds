@@ -16,7 +16,8 @@ Phase 4: Polish (28-36h)       → 2 PRs
 Phase 5: Post-MVP (36h+)        → 7 PRs
 Phase 6: P1 Features            → 4 PRs
 Phase 7: P2 Features            → 1 PR
-                        TOTAL: 25 PRs
+Phase 8: UX IMPROVEMENTS        → 3 PRs
+                        TOTAL: 28 PRs
 ```
 
 ---
@@ -1811,3 +1812,173 @@ Complete UI redesign to create a modern, professional application optimized for 
 - Search and filters for efficient campaign management
 - Bulk operations for productivity
 - Fast creation flow as top priority
+
+---
+
+## PR #28: AI Mode - Prompt-Based Campaign Auto-Population
+**Branch:** `feature/ai-mode-prompt`  
+**Time Estimate:** 4-5 hours  
+**Dependencies:** PR #27 (UI redesign)  
+**Status:** ⏳ Pending
+
+### Feature Overview
+Add an AI mode to the Create New Campaign form where users can enter a natural language prompt describing their campaign, and the form will automatically populate with campaign details extracted by an LLM.
+
+### Model Recommendation
+**Suggested Model: `gpt-4o-mini`**
+- Faster response times (better UX)
+- Lower cost per request
+- Sufficient for structured data extraction
+- Good for form auto-population tasks
+- Alternative: `gpt-4o` if higher quality is needed
+
+### Tasks
+
+#### Backend Tasks
+
+- [ ] **28.1** Create new AI service function for prompt-based campaign generation
+  - Function: `generate_campaign_from_prompt(prompt: str) -> Dict`
+  - Use `gpt-4o-mini` model
+  - Prompt engineering to extract:
+    - Campaign name
+    - Advertiser name
+    - Subject line
+    - Preview text
+    - Body copy (structured as headline + paragraphs)
+    - CTA text
+    - CTA URL (if mentioned or inferred)
+    - Footer text (optional)
+  - Return structured JSON matching form fields
+  - Handle edge cases (missing info, ambiguous prompts)
+
+- [ ] **28.2** Create new API endpoint `/api/v1/campaigns/generate-from-prompt`
+  - Method: POST
+  - Request body: `{ "prompt": "string" }`
+  - Response: `{ "campaign_name": "...", "advertiser_name": "...", ... }`
+  - Error handling for API failures, invalid responses
+  - Add rate limiting if needed
+
+- [ ] **28.3** Add route handler in `backend/app/routes/generate.py`
+  - Import new AI service function
+  - Validate input (non-empty prompt, max length)
+  - Call AI service
+  - Return structured response
+  - Logging for debugging
+
+#### Frontend Tasks
+
+- [ ] **28.4** Add AI Mode toggle/button to UploadPage
+  - Toggle between "Manual Mode" and "AI Mode"
+  - Visual indicator (icon, badge)
+  - Position: top of form, near title
+
+- [ ] **28.5** Create AI Mode UI component
+  - Large textarea for user prompt
+  - Placeholder with examples
+  - "Generate Campaign" button
+  - Loading state during generation
+  - Error display for failures
+  - Success feedback
+
+- [ ] **28.6** Integrate AI generation with form
+  - Call new API endpoint on "Generate Campaign"
+  - Auto-populate all form fields from response
+  - Preserve user's uploaded files (logo, hero images)
+  - Allow editing after auto-population
+  - Clear form option
+
+- [ ] **28.7** Add API service function
+  - Add `generateCampaignFromPrompt(prompt)` to `frontend/src/services/api.js`
+  - Handle errors appropriately
+  - Return structured data
+
+- [ ] **28.8** Enhance UX
+  - Show example prompts as suggestions
+  - Allow switching between AI and Manual modes
+  - Preserve form data when toggling
+  - Visual feedback during generation
+  - Toast notifications for success/errors
+
+### Technical Specifications
+
+**AI Prompt Template:**
+```
+You are an email marketing expert. Extract campaign information from the following user prompt:
+
+USER PROMPT:
+{prompt}
+
+TASKS:
+1. Extract or infer campaign name (if not provided, suggest one based on context)
+2. Extract or infer advertiser/company name
+3. Generate compelling subject line (max 50 chars)
+4. Generate preview text (50-90 chars) that complements subject line
+5. Structure body copy:
+   - Headline (5-10 words, compelling)
+   - Body paragraphs (2-3 paragraphs, max 150 words total)
+6. Generate CTA text (2-4 words, action-oriented)
+7. Extract or suggest CTA URL (if mentioned, or use placeholder)
+8. Generate footer text (optional, company info or disclaimer)
+
+OUTPUT FORMAT: JSON only, no markdown, no code blocks
+{
+  "campaign_name": "...",
+  "advertiser_name": "...",
+  "subject_line": "...",
+  "preview_text": "...",
+  "body_copy": "...",
+  "cta_text": "...",
+  "cta_url": "...",
+  "footer_text": "..."
+}
+```
+
+**API Parameters:**
+- Model: `gpt-4o-mini`
+- Temperature: 0.7 (creative but consistent)
+- Max tokens: 1000
+- Response format: JSON object
+
+### Acceptance Criteria
+- ✅ AI Mode toggle visible and functional
+- ✅ Users can enter natural language prompts
+- ✅ Form auto-populates with extracted data
+- ✅ All form fields populated (with reasonable defaults if missing)
+- ✅ Users can edit auto-populated fields
+- ✅ Error handling for API failures
+- ✅ Loading states during generation
+- ✅ Works with existing file upload functionality
+- ✅ Manual mode still works as before
+- ✅ Smooth UX transitions between modes
+
+### Example User Prompts
+- "Create a campaign for Acme Corp's Black Friday sale. 30% off all products. Use code BLACKFRIDAY30."
+- "I need an email campaign for TechStart's new product launch. The product is called CloudSync, a cloud storage solution for businesses."
+- "Promote our summer collection sale. 50% off swimwear. Free shipping over $50."
+
+### Files to Create
+- `backend/app/services/prompt_service.py` (or add to `ai_service.py` if under 500 lines)
+- `backend/app/routes/generate.py` (if not exists, or add to existing generate.py)
+
+### Files to Modify
+- `frontend/src/pages/UploadPage.jsx` (add AI mode UI and logic)
+- `frontend/src/services/api.js` (add generateCampaignFromPrompt function)
+- `backend/app/services/ai_service.py` (add prompt generation function)
+- `backend/app/routes/generate.py` (add new endpoint)
+
+### Design Considerations
+- AI Mode should feel optional, not required
+- Clear visual distinction between AI and Manual modes
+- Example prompts help users understand capabilities
+- Auto-populated fields should be clearly editable
+- Preserve user work when switching modes
+
+### Testing Checklist
+- [ ] Test with various prompt styles (detailed, vague, partial info)
+- [ ] Test error handling (API failures, network issues)
+- [ ] Test form validation with AI-generated data
+- [ ] Test mode switching (AI → Manual, Manual → AI)
+- [ ] Test with file uploads (logo, hero images)
+- [ ] Test edge cases (empty prompts, very long prompts, special characters)
+
+**Note:** This feature enhances the campaign creation workflow by allowing users to describe their campaign in natural language, reducing manual data entry while maintaining full control to edit the generated content.

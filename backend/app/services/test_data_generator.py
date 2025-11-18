@@ -3,7 +3,7 @@ Test data generator service for creating realistic performance metrics for demo 
 """
 import random
 import logging
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 from app.models.campaign import Campaign
 
@@ -166,6 +166,60 @@ def _generate_low_performer_metrics() -> Dict[str, float]:
         "conversion_rate": conversion_rate,
         "performance_score": performance_score
     }
+
+
+async def generate_single_campaign_performance(conn, campaign: Campaign) -> Optional[Dict[str, Any]]:
+    """
+    Generate realistic performance metrics for a single approved campaign
+    
+    Randomly assigns the campaign to a performance tier (high, medium, or low)
+    and generates appropriate metrics. Only generates if campaign doesn't already
+    have performance data.
+    
+    Args:
+        conn: Database connection
+        campaign: Campaign to generate metrics for
+        
+    Returns:
+        Dictionary with generated metrics, or None if already has performance data
+    """
+    try:
+        # Skip if campaign already has performance data
+        if campaign.performance_score is not None and campaign.performance_score > 0:
+            logger.info(f"Campaign {campaign.id} already has performance data, skipping generation")
+            return None
+        
+        # Only generate for approved campaigns
+        if campaign.status != 'approved':
+            logger.info(f"Campaign {campaign.id} is not approved (status: {campaign.status}), skipping performance generation")
+            return None
+        
+        # Randomly assign to a performance tier (weighted towards medium performers)
+        tier_roll = random.random()
+        if tier_roll < 0.35:  # 35% high performers
+            metrics = _generate_high_performer_metrics()
+            tier = "high"
+        elif tier_roll < 0.80:  # 45% medium performers
+            metrics = _generate_medium_performer_metrics()
+            tier = "medium"
+        else:  # 20% low performers
+            metrics = _generate_low_performer_metrics()
+            tier = "low"
+        
+        # Update campaign with generated metrics
+        await _update_campaign_performance(conn, campaign, metrics)
+        
+        logger.info(f"Generated {tier} performer metrics for campaign {campaign.id}: score={metrics['performance_score']:.3f}")
+        
+        return {
+            "tier": tier,
+            **metrics
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating performance data for campaign {campaign.id}: {e}", exc_info=True)
+        # Don't raise - we don't want to fail approval if stats generation fails
+        return None
 
 
 async def _update_campaign_performance(conn, campaign: Campaign, metrics: Dict[str, float]):

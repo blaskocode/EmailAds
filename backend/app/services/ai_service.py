@@ -346,3 +346,121 @@ OUTPUT FORMAT: JSON only, no markdown, no code blocks
         logger.error(f"Error processing text content with history: {e}")
         raise
 
+
+async def generate_campaign_from_prompt(prompt: str) -> Dict[str, Any]:
+    """
+    Generate campaign data from a natural language prompt using GPT-4o-mini
+    
+    Args:
+        prompt: Natural language description of the campaign
+        
+    Returns:
+        Dictionary with extracted campaign fields:
+        - campaign_name
+        - advertiser_name
+        - subject_line
+        - preview_text
+        - body_copy
+        - cta_text
+        - cta_url
+        - footer_text
+    """
+    try:
+        system_prompt = """You are an email marketing expert. Extract campaign information from user prompts and return structured JSON data. Always respond with valid JSON only, no markdown, no code blocks."""
+        
+        user_prompt = f"""You are an email marketing expert. Extract campaign information from the following user prompt:
+
+USER PROMPT:
+{prompt}
+
+TASKS:
+1. Extract or infer campaign name (if not provided, suggest one based on context)
+2. Extract or infer advertiser/company name
+3. Generate compelling subject line (max 50 chars)
+4. Generate preview text (50-90 chars) that complements subject line
+5. Structure body copy:
+   - Headline (5-10 words, compelling)
+   - Body paragraphs (2-3 paragraphs, max 150 words total)
+   - Combine headline and paragraphs into a single body_copy string
+6. Generate CTA text (2-4 words, action-oriented)
+7. Extract or suggest CTA URL (if mentioned, or use placeholder like "#" or "https://example.com")
+8. Generate footer text (optional, company info or disclaimer)
+
+OUTPUT FORMAT: JSON only, no markdown, no code blocks
+{{
+  "campaign_name": "...",
+  "advertiser_name": "...",
+  "subject_line": "...",
+  "preview_text": "...",
+  "body_copy": "...",
+  "cta_text": "...",
+  "cta_url": "...",
+  "footer_text": "..."
+}}"""
+
+        # Run in thread pool since OpenAI client is synchronous
+        # Using gpt-4o-mini for faster response and lower cost
+        client = get_openai_client()
+        response = await asyncio.to_thread(
+            client.chat.completions.create,
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000,
+            response_format={"type": "json_object"}
+        )
+        
+        content = response.choices[0].message.content
+        result = json.loads(content)
+        
+        # Validate and ensure all required fields exist
+        required_fields = ["campaign_name", "advertiser_name", "subject_line", "preview_text", "body_copy", "cta_text", "cta_url"]
+        for field in required_fields:
+            if field not in result or not result[field]:
+                if field == "cta_url":
+                    result[field] = "#"
+                elif field == "footer_text":
+                    result[field] = ""
+                else:
+                    # Provide sensible defaults
+                    if field == "campaign_name":
+                        result[field] = "Email Campaign"
+                    elif field == "advertiser_name":
+                        result[field] = "Company"
+                    elif field == "subject_line":
+                        result[field] = "Special Offer"
+                    elif field == "preview_text":
+                        result[field] = "Check out our latest offer!"
+                    elif field == "body_copy":
+                        result[field] = "Thank you for your interest in our products."
+                    elif field == "cta_text":
+                        result[field] = "Learn More"
+        
+        # Ensure footer_text exists (optional field)
+        if "footer_text" not in result:
+            result["footer_text"] = ""
+        
+        logger.info(f"Campaign generated from prompt successfully. Campaign: {result.get('campaign_name', 'Unknown')}")
+        return result
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error in prompt generation: {e}")
+        # Fallback to basic structure based on prompt
+        fallback_name = prompt[:50] if len(prompt) > 0 else "Email Campaign"
+        return {
+            "campaign_name": fallback_name,
+            "advertiser_name": "Company",
+            "subject_line": "Special Offer",
+            "preview_text": "Check out our latest offer!",
+            "body_copy": prompt[:500] if len(prompt) > 0 else "Thank you for your interest.",
+            "cta_text": "Learn More",
+            "cta_url": "#",
+            "footer_text": ""
+        }
+    except Exception as e:
+        logger.error(f"Error generating campaign from prompt: {e}", exc_info=True)
+        raise
+

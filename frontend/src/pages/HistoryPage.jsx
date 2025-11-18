@@ -4,17 +4,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import StatusBadge from '../components/StatusBadge';
 import { listCampaigns, downloadCampaign } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
-
-const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-gray-800',
-  uploaded: 'bg-blue-100 text-blue-800',
-  processed: 'bg-yellow-100 text-yellow-800',
-  ready: 'bg-green-100 text-green-800',
-  approved: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-red-100 text-red-800'
-};
 
 function HistoryPage() {
   const navigate = useNavigate();
@@ -193,11 +185,7 @@ function HistoryPage() {
                   <h3 className="text-lg font-semibold text-gray-900 flex-1">
                     {campaign.campaign_name || 'Untitled Campaign'}
                   </h3>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${
-                    STATUS_COLORS[campaign.status] || STATUS_COLORS.draft
-                  }`}>
-                    {campaign.status}
-                  </span>
+                  <StatusBadge status={campaign.status} className="ml-2" />
                 </div>
                 <p className="text-sm text-gray-600">
                   {campaign.advertiser_name || '—'}

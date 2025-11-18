@@ -6,7 +6,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import FormInput from '../components/FormInput';
 import FileUpload from '../components/FileUpload';
 import Loading from '../components/Loading';
-import { uploadCampaign, getCampaignDetail } from '../services/api';
+import AIModePanel from '../components/AIModePanel';
+import ModeToggle from '../components/ModeToggle';
+import { uploadCampaign, getCampaignDetail, generateCampaignFromPrompt } from '../services/api';
 import { loadExistingFiles } from '../utils/fileHelpers';
 
 function UploadPage() {
@@ -37,6 +39,12 @@ function UploadPage() {
   const [editingCampaignId, setEditingCampaignId] = useState(null);
   const [hasExistingFiles, setHasExistingFiles] = useState(false);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  
+  // AI Mode state
+  const [aiMode, setAiMode] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [aiError, setAiError] = useState(null);
 
   // Load campaign data if editing
   useEffect(() => {
@@ -115,6 +123,50 @@ function UploadPage() {
         delete newErrors[name];
         return newErrors;
       });
+    }
+  };
+
+  const handleGenerateFromPrompt = async () => {
+    if (!aiPrompt.trim()) {
+      setAiError('Please enter a prompt describing your campaign');
+      return;
+    }
+
+    setGenerating(true);
+    setAiError(null);
+    setError(null);
+
+    try {
+      const generatedData = await generateCampaignFromPrompt(aiPrompt.trim());
+      
+      // Auto-populate form fields
+      setFormData(prev => ({
+        ...prev,
+        campaign_name: generatedData.campaign_name || prev.campaign_name,
+        advertiser_name: generatedData.advertiser_name || prev.advertiser_name,
+        subject_line: generatedData.subject_line || prev.subject_line,
+        preview_text: generatedData.preview_text || prev.preview_text,
+        body_copy: generatedData.body_copy || prev.body_copy,
+        cta_text: generatedData.cta_text || prev.cta_text,
+        cta_url: generatedData.cta_url || prev.cta_url,
+        footer_text: generatedData.footer_text || prev.footer_text
+      }));
+
+      // Clear AI prompt and switch to manual mode
+      setAiPrompt('');
+      setAiMode(false);
+      
+      // Show success message briefly
+      setError(null);
+    } catch (err) {
+      console.error('AI generation error:', err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'Failed to generate campaign from prompt. Please try again.';
+      setAiError(errorMessage);
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -240,14 +292,30 @@ function UploadPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-white rounded-xl shadow-hibid p-8 border border-hibid-gray-200">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-hibid-gray-900 mb-2">
-            {editingCampaignId ? 'Edit Campaign' : 'Create New Campaign'}
-          </h2>
-          <p className="text-hibid-gray-600">
-            {editingCampaignId 
-              ? 'Update your campaign details and assets. Upload new files to replace existing ones.'
-              : "Upload your assets and we'll generate a professional email campaign for you."}
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h2 className="text-3xl font-bold text-hibid-gray-900 mb-2">
+                {editingCampaignId ? 'Edit Campaign' : 'Create New Campaign'}
+              </h2>
+              <p className="text-hibid-gray-600">
+                {editingCampaignId 
+                  ? 'Update your campaign details and assets. Upload new files to replace existing ones.'
+                  : "Upload your assets and we'll generate a professional email campaign for you."}
+              </p>
+            </div>
+            {!editingCampaignId && (
+              <ModeToggle
+                aiMode={aiMode}
+                onToggle={() => {
+                  setAiMode(!aiMode);
+                  setAiError(null);
+                  if (aiMode) {
+                    setAiPrompt('');
+                  }
+                }}
+              />
+            )}
+          </div>
         </div>
         
         {editingCampaignId && hasExistingFiles && logo.length === 0 && heroImages.length === 0 && (
@@ -262,6 +330,20 @@ function UploadPage() {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl shadow-hibid">
             <p className="text-sm text-red-800 font-medium">{error}</p>
           </div>
+        )}
+
+        {/* AI Mode UI */}
+        {aiMode && !editingCampaignId && (
+          <AIModePanel
+            aiPrompt={aiPrompt}
+            setAiPrompt={(value) => {
+              setAiPrompt(value);
+              setAiError(null);
+            }}
+            generating={generating}
+            aiError={aiError}
+            onGenerate={handleGenerateFromPrompt}
+          />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">

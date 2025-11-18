@@ -7,6 +7,7 @@ import Loading from '../components/Loading';
 import ScheduleModal from '../components/ScheduleModal';
 import StatsCards from '../components/StatsCards';
 import CampaignsSearchBar from '../components/CampaignsSearchBar';
+import StatusBadge from '../components/StatusBadge';
 import { listCampaigns, resetCampaign, scheduleCampaign, cancelSchedule } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import {
@@ -294,21 +295,31 @@ function CampaignsListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          STATUS_COLORS[campaign.status] || STATUS_COLORS.draft
-                        }`}>
-                          {campaign.status}
-                        </span>
+                      <div className="flex flex-col gap-1.5">
+                        <StatusBadge status={campaign.status} />
                         {campaign.scheduling_status === 'scheduled' && (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border bg-purple-50 text-purple-700 border-purple-200 shadow-sm">
+                            <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             Scheduled
                           </span>
                         )}
                         {campaign.review_status && (
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            REVIEW_STATUS_COLORS[campaign.review_status] || REVIEW_STATUS_COLORS.pending
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border shadow-sm ${
+                            campaign.review_status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            campaign.review_status === 'reviewed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            campaign.review_status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                            'bg-red-50 text-red-700 border-red-200'
                           }`}>
+                            <svg className={`w-3.5 h-3.5 ${
+                              campaign.review_status === 'pending' ? 'text-yellow-500' :
+                              campaign.review_status === 'reviewed' ? 'text-blue-500' :
+                              campaign.review_status === 'approved' ? 'text-green-500' :
+                              'text-red-500'
+                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
                             Review: {campaign.review_status}
                           </span>
                         )}
